@@ -7,12 +7,6 @@ import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
 export const firebaseConfig = {
-  apiKey: "【請填入】",
-  authDomain: "【請填入】",
-  projectId: "【請填入】",
-  storageBucket: "【請填入】",
-  messagingSenderId: "【請填入】",
-  appId: "【請填入】"
 };
 
 // Initialize Firebase
