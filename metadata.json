@@ -1,0 +1,8 @@
+{
+  "name": "Our Bliss",
+  "description": "A soft-gold themed application for couples to share memories, chat, and track their days together.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
