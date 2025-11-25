@@ -20,14 +20,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F3ED] flex flex-col max-w-md mx-auto relative shadow-2xl overflow-hidden font-sans text-[#3A3A3A]">
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto pb-24 hide-scrollbar">
+    <div className="h-[100dvh] w-full bg-[#F7F3ED] flex flex-col max-w-md mx-auto relative shadow-2xl overflow-hidden font-sans text-[#3A3A3A]">
+      {/* Main Content Area - Scrollable internally */}
+      <main className="flex-1 overflow-hidden relative w-full h-full">
         {children}
       </main>
 
       {/* Persistent Bottom Navigation */}
-      <nav className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#EAEAEA] py-2 px-4 pb-6 rounded-t-3xl shadow-[0_-5px_20px_rgba(0,0,0,0.02)] z-50">
+      <nav className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#EAEAEA] py-2 px-4 pb-6 rounded-t-3xl shadow-[0_-5px_20px_rgba(0,0,0,0.02)] z-[90]">
         <ul className="flex justify-between items-end">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;

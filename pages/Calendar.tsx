@@ -72,9 +72,9 @@ const CalendarPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#F7F3ED]">
-      {/* Calendar Header */}
-      <div className="bg-white pt-4 pb-2 px-4 shadow-sm z-10 sticky top-0 rounded-b-3xl">
+    <div className="flex flex-col h-full bg-[#F7F3ED] overflow-hidden">
+      {/* Fixed Calendar Header & Grid */}
+      <div className="bg-white pt-4 pb-2 px-4 shadow-sm z-10 rounded-b-3xl flex-shrink-0">
         <div className="flex justify-between items-center mb-4">
            <button onClick={() => changeMonth(-1)} className="p-2 text-[#C1C1C1] hover:text-[#D9B26D]">
              <ChevronLeft size={24} />
@@ -94,7 +94,7 @@ const CalendarPage: React.FC = () => {
           <div className="text-blue-300">六</div>
         </div>
 
-        {/* Calendar Grid (TimeTree Style) */}
+        {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-y-1 gap-x-1 pb-2">
           {blanks.map(b => <div key={`blank-${b}`} className="h-14" />)}
           {daysArray.map(day => {
@@ -115,7 +115,7 @@ const CalendarPage: React.FC = () => {
                   {day}
                 </span>
                 
-                {/* Event Bars (TimeTree Style) */}
+                {/* Event Bars */}
                 <div className="w-full px-1 mt-1 flex flex-col gap-[2px]">
                   {dayEvents.slice(0, 3).map((e, i) => (
                     <div 
@@ -136,8 +136,8 @@ const CalendarPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Selected Day Event List */}
-      <div className="flex-1 overflow-y-auto p-4 pb-24">
+      {/* Scrollable Event List */}
+      <div className="flex-1 overflow-y-auto p-4 pb-24 hide-scrollbar">
         <div className="flex justify-between items-center mb-4 px-2">
           <div className="flex flex-col">
             <span className="text-xs text-[#8A8A8A] uppercase tracking-wider">
