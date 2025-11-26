@@ -7,6 +7,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, arrayRemove, collection, addDoc
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Memory, Comment } from '../types';
 import { ArrowLeft, MapPin, Heart, MessageCircle, Send, MoreVertical, Trash2, Check, X, Calendar, Plus, Smile, Clock } from 'lucide-react';
+import { compressImage } from '../services/imageUtils'; // Import compression
 
 const MemoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -122,8 +123,10 @@ const MemoryDetail: React.FC = () => {
         setUploadingImg(true);
         try {
             const file = e.target.files[0];
+            const compressed = await compressImage(file, 1280, 0.8); // Compress
+
             const storageRef = ref(storage, `memories/${coupleId}/${Date.now()}_${file.name}`);
-            await uploadBytes(storageRef, file);
+            await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
             await updateDoc(doc(db, `couples/${coupleId}/memories`, id), {
                 images: arrayUnion(url)

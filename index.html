@@ -2,11 +2,15 @@
 <html lang="zh-TW">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
     <title>Our Bliss</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --sat: env(safe-area-inset-top);
+        --sab: env(safe-area-inset-bottom);
+      }
       body {
         font-family: 'Noto Sans TC', sans-serif;
         background-color: #F7F3ED; /* Warm Beige */
@@ -31,6 +35,10 @@
       .hide-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
+      }
+      /* Utility class for iPhone Safe Area Bottom */
+      .safe-area-bottom {
+        padding-bottom: calc(1rem + var(--sab));
       }
       /* Soft Gold Gradient Text */
       .text-gold-gradient {

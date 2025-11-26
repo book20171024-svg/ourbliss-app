@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useCouple } from '../context/CoupleContext';
-import { Heart, Key, QrCode, ArrowRight } from 'lucide-react';
+import { Heart, Key, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Pairing: React.FC = () => {
@@ -18,8 +19,6 @@ const Pairing: React.FC = () => {
 
   const handleJoin = () => {
     if (inputCode.length > 3) {
-      // In a real app, validate code against Firestore. 
-      // Here we assume the code IS the ID for simplicity or maps to it.
       signIn('partner2', inputCode);
       navigate('/');
     }
@@ -47,7 +46,7 @@ const Pairing: React.FC = () => {
           onClick={() => setMode('join')}
           className="w-full bg-white text-[#D9B26D] border border-[#D9B26D] py-4 rounded-full font-medium active:scale-95 transition-transform"
         >
-          我有邀請碼
+          我有邀請碼 (輸入 ID)
         </button>
       </div>
     );
@@ -64,7 +63,7 @@ const Pairing: React.FC = () => {
       </h2>
 
       <div className="bg-white p-6 rounded-2xl shadow-sm mb-6">
-        <label className="block text-xs text-[#8A8A8A] mb-2">輸入配對代碼 / ID</label>
+        <label className="block text-xs text-[#8A8A8A] mb-2">輸入 ID</label>
         <div className="flex items-center border-b border-[#EAEAEA] py-2">
           <Key className="text-[#D9B26D] mr-3" size={20} />
           <input 
@@ -87,15 +86,6 @@ const Pairing: React.FC = () => {
         <span>開始旅程</span>
         <ArrowRight size={18} />
       </button>
-
-      <div className="mt-8 flex justify-center">
-        <button className="flex flex-col items-center text-[#8A8A8A] hover:text-[#D9B26D] transition-colors">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm">
-            <QrCode size={20} />
-          </div>
-          <span className="text-xs">掃描 QR Code</span>
-        </button>
-      </div>
     </div>
   );
 };

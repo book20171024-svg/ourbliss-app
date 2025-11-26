@@ -28,13 +28,9 @@ const EventAdd: React.FC = () => {
       navigate('/');
       return;
     }
-
-    // Set initial date if passed from calendar
     if (locationState?.initialDate) {
-      // Default to 9:00 AM on selected date
       setDateTime(`${locationState.initialDate}T09:00`);
     } else if (!dateTime) {
-      // Default to now if no state
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       setDateTime(now.toISOString().slice(0, 16));
@@ -50,7 +46,7 @@ const EventAdd: React.FC = () => {
       await addDoc(collection(db, `couples/${coupleId}/events`), {
         title,
         type,
-        dateTime, // ISO string from datetime-local
+        dateTime, 
         isAllDay,
         location,
         reminder,
@@ -62,6 +58,7 @@ const EventAdd: React.FC = () => {
     } catch (error: any) {
       console.error("Error adding event:", error);
       alert(`新增失敗：${error.message}`);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -69,14 +66,14 @@ const EventAdd: React.FC = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F7F3ED]">載入中...</div>;
 
   return (
-    <div className="min-h-full bg-[#F7F3ED] p-6 pb-24 flex flex-col animate-fade-in">
-      <div className="flex justify-between items-center mb-6">
+    <div className="h-full bg-[#F7F3ED] overflow-y-auto p-6 pb-24 flex flex-col animate-fade-in relative">
+      <div className="flex justify-between items-center mb-6 flex-shrink-0">
         <h2 className="text-xl font-serif font-bold text-[#3A3A3A]">新增活動</h2>
         <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full text-[#C1C1C1]"><X size={20} /></button>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex-1 space-y-5">
-        <div className="bg-white p-5 rounded-3xl shadow-sm space-y-5 border border-[#EAEAEA]">
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-5 pb-20">
+        <div className="bg-white p-5 rounded-3xl shadow-sm space-y-5 border border-[#EAEAEA] flex-shrink-0">
           <input 
             className="w-full text-xl font-bold outline-none placeholder-[#C1C1C1] bg-transparent text-[#3A3A3A]" 
             placeholder="活動名稱" 
@@ -105,8 +102,7 @@ const EventAdd: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl shadow-sm divide-y divide-[#F7F3ED] border border-[#EAEAEA]">
-          {/* Date Time */}
+        <div className="bg-white p-5 rounded-3xl shadow-sm divide-y divide-[#F7F3ED] border border-[#EAEAEA] flex-shrink-0">
           <div className="py-3">
              <div className="flex items-center justify-between mb-2">
                <div className="flex items-center gap-2 text-[#8A8A8A] text-xs font-bold"><Calendar size={16} /> 日期與時間</div>
@@ -124,13 +120,11 @@ const EventAdd: React.FC = () => {
              />
           </div>
 
-          {/* Location */}
           <div className="py-3 flex items-center gap-3">
              <MapPin size={20} className="text-[#D9B26D]" />
-             <input placeholder="地點 (可開啟地圖)" className="w-full outline-none text-sm" value={location} onChange={e => setLocation(e.target.value)} />
+             <input placeholder="地點" className="w-full outline-none text-sm" value={location} onChange={e => setLocation(e.target.value)} />
           </div>
 
-          {/* Reminder */}
           <div className="py-3 flex items-center gap-3">
              <Bell size={20} className="text-[#D9B26D]" />
              <select className="w-full outline-none text-sm bg-transparent" value={reminder} onChange={(e:any) => setReminder(e.target.value)}>
@@ -141,13 +135,11 @@ const EventAdd: React.FC = () => {
              </select>
           </div>
 
-          {/* Note */}
           <div className="py-3 flex items-start gap-3">
              <AlignLeft size={20} className="text-[#D9B26D] mt-1" />
              <textarea placeholder="備註..." className="w-full outline-none text-sm h-20 resize-none" value={note} onChange={e => setNote(e.target.value)} />
           </div>
 
-          {/* Color */}
            <div className="py-3">
             <label className="text-xs text-[#8A8A8A] font-bold block mb-2">標籤顏色</label>
             <div className="flex gap-2">
@@ -163,8 +155,8 @@ const EventAdd: React.FC = () => {
             </div>
            </div>
         </div>
-
-        <button type="submit" disabled={isSubmitting} className="w-full bg-[#D9B26D] text-white py-4 rounded-full font-bold shadow-lg mt-4">
+        
+        <button type="submit" disabled={isSubmitting} className="w-full bg-[#D9B26D] text-white py-4 rounded-full font-bold shadow-lg flex-shrink-0 mt-4 mb-10">
           {isSubmitting ? '建立中...' : '完成'}
         </button>
       </form>

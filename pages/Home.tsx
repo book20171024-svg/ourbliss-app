@@ -8,7 +8,8 @@ import { Heart, MessageCircle, Calendar as CalendarIcon, MapPin, Gift, ArrowRigh
 import { useNavigate } from 'react-router-dom';
 import { CalendarEvent, Memory } from '../types';
 import { generateDailyMessage } from '../services/geminiService';
-import LazyImage from '../components/LazyImage'; // Import LazyImage
+import LazyImage from '../components/LazyImage';
+import { compressImage } from '../services/imageUtils'; // Import compression
 
 const statusOptions = [
   { label: '想你', icon: '💭' },
@@ -63,7 +64,6 @@ const Home: React.FC = () => {
 
     // 2. Fetch Memories (On This Day Logic)
     const memRef = collection(db, `couples/${coupleId}/memories`);
-    // Ideally this query should also be optimized in the future
     const qMem = query(memRef, orderBy('date', 'desc'), limit(20)); 
     
     const unsubMem = onSnapshot(qMem, (snap) => {
@@ -125,8 +125,9 @@ const Home: React.FC = () => {
     const file = e.target.files?.[0];
     if (file && currentUserRole && coupleData) {
       try {
+        const compressedFile = await compressImage(file, 500, 0.8); // Compress avatar
         const storageRef = ref(storage, `avatars/${coupleData.id}/${currentUserRole}_${Date.now()}`);
-        await uploadBytes(storageRef, file);
+        await uploadBytes(storageRef, compressedFile);
         const url = await getDownloadURL(storageRef);
         if (currentUserRole === 'partner1') await updateCoupleData({ partner1Avatar: url });
         else await updateCoupleData({ partner2Avatar: url });
@@ -140,8 +141,9 @@ const Home: React.FC = () => {
     const file = e.target.files?.[0];
     if (file && coupleId) {
       try {
+        const compressedFile = await compressImage(file, 1280, 0.8); // Compress cover
         const storageRef = ref(storage, `covers/${coupleId}_${Date.now()}`);
-        await uploadBytes(storageRef, file);
+        await uploadBytes(storageRef, compressedFile);
         const url = await getDownloadURL(storageRef);
         await updateCoupleData({ coverImage: url });
       } catch(err) {

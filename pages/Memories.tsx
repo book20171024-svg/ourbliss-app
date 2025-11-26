@@ -5,15 +5,20 @@ import { db, storage } from '../services/firebaseConfig';
 import { collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Memory } from '../types';
-import { Plus, X, Image as ImageIcon, MapPin, Smile, Clock, Calendar, Check } from 'lucide-react';
+import { Plus, X, Image as ImageIcon, MapPin, Smile, Clock, Calendar, Check, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import LazyImage from '../components/LazyImage'; // Import LazyImage
+import LazyImage from '../components/LazyImage';
+import { compressImage } from '../services/imageUtils'; // Import compression
 
 const Memories: React.FC = () => {
   const { coupleId } = useCouple();
   const navigate = useNavigate();
   const [memories, setMemories] = useState<Memory[]>([]);
+  const [filteredMemories, setFilteredMemories] = useState<Memory[]>([]);
   const [showAdd, setShowAdd] = useState(false);
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
   
   // New Memory Form
   const [images, setImages] = useState<File[]>([]);
@@ -31,10 +36,27 @@ const Memories: React.FC = () => {
     if (!coupleId) return;
     const q = query(collection(db, `couples/${coupleId}/memories`), orderBy('date', 'desc'));
     const unsubscribe = onSnapshot(q, (snap) => {
-      setMemories(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Memory)));
+      const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Memory));
+      setMemories(list);
+      setFilteredMemories(list);
     });
     return () => unsubscribe();
   }, [coupleId]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredMemories(memories);
+    } else {
+      const lowerQ = searchQuery.toLowerCase();
+      const filtered = memories.filter(m => 
+        m.title?.toLowerCase().includes(lowerQ) || 
+        m.description?.toLowerCase().includes(lowerQ) ||
+        m.location?.toLowerCase().includes(lowerQ) ||
+        m.date?.includes(lowerQ)
+      );
+      setFilteredMemories(filtered);
+    }
+  }, [searchQuery, memories]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -55,8 +77,10 @@ const Memories: React.FC = () => {
       const imageUrls: string[] = [];
       
       for (const file of images) {
+        // Compress
+        const compressed = await compressImage(file, 1280, 0.8);
         const storageRef = ref(storage, `memories/${coupleId}/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, file);
+        await uploadBytes(storageRef, compressed);
         const url = await getDownloadURL(storageRef);
         imageUrls.push(url);
       }
@@ -94,15 +118,39 @@ const Memories: React.FC = () => {
 
   return (
     <div className="h-full bg-[#F7F3ED] overflow-y-auto">
-      <header className="sticky top-0 z-10 bg-[#F7F3ED]/95 backdrop-blur-md px-6 py-4 flex justify-between items-center shadow-sm">
-        <h2 className="text-xl font-bold font-serif text-[#3A3A3A]">回憶錄</h2>
-        <button onClick={() => setShowAdd(true)} className="w-10 h-10 bg-[#D9B26D] text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-          <Plus size={24} />
-        </button>
+      <header className="sticky top-0 z-10 bg-[#F7F3ED]/95 backdrop-blur-md px-6 py-4 shadow-sm space-y-3">
+        <div className="flex justify-between items-center">
+           <h2 className="text-xl font-bold font-serif text-[#3A3A3A]">回憶錄</h2>
+           <button onClick={() => setShowAdd(true)} className="w-10 h-10 bg-[#D9B26D] text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+             <Plus size={24} />
+           </button>
+        </div>
+        
+        {/* Search Bar */}
+        <div className="bg-white rounded-full flex items-center px-4 py-2 shadow-sm border border-[#EAEAEA]">
+           <Search size={16} className="text-[#C1C1C1] mr-2" />
+           <input 
+             className="w-full outline-none text-sm bg-transparent placeholder-[#C1C1C1] text-[#3A3A3A]"
+             placeholder="搜尋回憶 (標題、地點...)"
+             value={searchQuery}
+             onChange={e => setSearchQuery(e.target.value)}
+           />
+           {searchQuery && (
+             <button onClick={() => setSearchQuery('')} className="bg-[#EAEAEA] rounded-full p-1 text-[#8A8A8A]">
+               <X size={12} />
+             </button>
+           )}
+        </div>
       </header>
 
       <div className="px-4 py-4 space-y-6 pb-32">
-        {memories.map(mem => (
+        {filteredMemories.length === 0 && (
+          <div className="text-center py-10 text-[#C1C1C1]">
+             {searchQuery ? '找不到相關回憶' : '還沒有回憶，快去新增吧！'}
+          </div>
+        )}
+
+        {filteredMemories.map(mem => (
           <div key={mem.id} onClick={() => navigate(`/memories/${mem.id}`)} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-[#EAEAEA] active:scale-[0.98] transition-transform duration-200 cursor-pointer">
             
             <div className="px-5 pt-5 pb-1 flex justify-between items-center">
