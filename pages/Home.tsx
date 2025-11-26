@@ -8,6 +8,7 @@ import { Heart, MessageCircle, Calendar as CalendarIcon, MapPin, Gift, ArrowRigh
 import { useNavigate } from 'react-router-dom';
 import { CalendarEvent, Memory } from '../types';
 import { generateDailyMessage } from '../services/geminiService';
+import LazyImage from '../components/LazyImage'; // Import LazyImage
 
 const statusOptions = [
   { label: '想你', icon: '💭' },
@@ -62,6 +63,7 @@ const Home: React.FC = () => {
 
     // 2. Fetch Memories (On This Day Logic)
     const memRef = collection(db, `couples/${coupleId}/memories`);
+    // Ideally this query should also be optimized in the future
     const qMem = query(memRef, orderBy('date', 'desc'), limit(20)); 
     
     const unsubMem = onSnapshot(qMem, (snap) => {
@@ -163,13 +165,13 @@ const Home: React.FC = () => {
         <input type="file" ref={coverInputRef} onChange={handleCoverUpload} className="hidden" accept="image/*" />
 
         {/* Top Cover Section */}
-        <div className="relative w-full h-[280px] rounded-b-[40px] overflow-hidden shadow-lg border-b-4 border-white shrink-0">
-           <img 
+        <div className="relative w-full h-[280px] rounded-b-[40px] overflow-hidden shadow-lg border-b-4 border-white shrink-0 bg-[#EAEAEA]">
+           <LazyImage 
              src={coupleData.coverImage || "https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?q=80&w=1000&auto=format&fit=crop"} 
              className="w-full h-full object-cover"
              alt="Cover"
            />
-           <div className="absolute inset-0 bg-black/20" /> {/* Dim overlay */}
+           <div className="absolute inset-0 bg-black/20" /> 
            
            <button onClick={() => coverInputRef.current?.click()} className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40">
              <Camera size={18} />
@@ -186,9 +188,9 @@ const Home: React.FC = () => {
                  )}
                  <div 
                    onClick={() => currentUserRole === 'partner1' && fileInputRef.current?.click()} 
-                   className="relative w-20 h-20 rounded-full border-4 border-white shadow-xl cursor-pointer"
+                   className="relative w-20 h-20 rounded-full border-4 border-white shadow-xl cursor-pointer bg-gray-200 overflow-hidden"
                  >
-                   <img src={coupleData.partner1Avatar || "https://picsum.photos/200"} className="w-full h-full rounded-full object-cover" alt="p1"/>
+                   <LazyImage src={coupleData.partner1Avatar || "https://picsum.photos/200"} className="w-full h-full rounded-full object-cover" alt="p1"/>
                    {currentUserRole === 'partner1' && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowStatusMenu(true); }}
@@ -198,7 +200,7 @@ const Home: React.FC = () => {
                       </button>
                    )}
                  </div>
-                 <span className="text-white font-bold text-shadow mt-2 text-sm">{coupleData.partner1Name}</span>
+                 <span className="text-white font-bold text-shadow mt-2 text-sm drop-shadow-md">{coupleData.partner1Name}</span>
               </div>
               
               {/* Days Heart */}
@@ -216,9 +218,9 @@ const Home: React.FC = () => {
                  )}
                  <div 
                    onClick={() => currentUserRole === 'partner2' && fileInputRef.current?.click()} 
-                   className="relative w-20 h-20 rounded-full border-4 border-white shadow-xl cursor-pointer"
+                   className="relative w-20 h-20 rounded-full border-4 border-white shadow-xl cursor-pointer bg-gray-200 overflow-hidden"
                  >
-                   <img src={coupleData.partner2Avatar || "https://picsum.photos/201"} className="w-full h-full rounded-full object-cover" alt="p2"/>
+                   <LazyImage src={coupleData.partner2Avatar || "https://picsum.photos/201"} className="w-full h-full rounded-full object-cover" alt="p2"/>
                    {currentUserRole === 'partner2' && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowStatusMenu(true); }}
@@ -228,7 +230,7 @@ const Home: React.FC = () => {
                       </button>
                    )}
                  </div>
-                 <span className="text-white font-bold text-shadow mt-2 text-sm">{coupleData.partner2Name}</span>
+                 <span className="text-white font-bold text-shadow mt-2 text-sm drop-shadow-md">{coupleData.partner2Name}</span>
               </div>
            </div>
         </div>
@@ -292,8 +294,8 @@ const Home: React.FC = () => {
                 </div>
               </div>
             ) : featuredMemory ? (
-              <div onClick={() => navigate(`/memories/${featuredMemory.data.id}`)} className="w-full h-full relative group cursor-pointer">
-                <img 
+              <div onClick={() => navigate(`/memories/${featuredMemory.data.id}`)} className="w-full h-full relative group cursor-pointer bg-[#EAEAEA]">
+                <LazyImage 
                   src={featuredMemory.data.images?.[0] || "https://picsum.photos/400/500"} 
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   alt="Memory"
@@ -344,7 +346,7 @@ const Home: React.FC = () => {
        {showStatusMenu && (
         <div className="fixed inset-0 z-[60]">
            <div className="absolute inset-0 bg-black/20" onClick={() => setShowStatusMenu(false)} />
-           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 animate-slide-up shadow-2xl">
+           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 animate-slide-up shadow-2xl safe-area-bottom">
               <h3 className="text-center font-bold text-[#3A3A3A] mb-4">現在的心情是...</h3>
               <div className="grid grid-cols-4 gap-4">
                 {statusOptions.map(s => (

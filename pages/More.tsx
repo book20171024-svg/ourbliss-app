@@ -1,17 +1,25 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCouple } from '../context/CoupleContext';
-import { MessageCircle, LogOut, Save, Gift, BookHeart, ChevronRight, Sparkles, User, Settings } from 'lucide-react';
+import { MessageCircle, LogOut, Save, Gift, BookHeart, ChevronRight, Sparkles, User, Settings, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const More: React.FC = () => {
   const { coupleData, currentUserRole, updateCoupleData, signOut, coupleId } = useCouple();
   const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
 
   const handleSave = async (p1: string, p2: string) => {
     await updateCoupleData({ partner1Name: p1, partner2Name: p2 });
-    alert('設定已更新！');
   };
+
+  const copyId = () => {
+    if(coupleId) {
+        navigator.clipboard.writeText(coupleId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    }
+  }
 
   return (
     <div className="h-full w-full overflow-y-auto hide-scrollbar bg-[#F7F3ED]">
@@ -53,29 +61,35 @@ const More: React.FC = () => {
         </div>
 
         {/* Settings */}
-        <h3 className="text-xs font-bold text-[#8A8A8A] mb-3 ml-2 tracking-widest uppercase">設定</h3>
+        <h3 className="text-xs font-bold text-[#8A8A8A] mb-3 ml-2 tracking-widest uppercase">設定 & 安全</h3>
         <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 space-y-6 border border-[#EAEAEA]">
-          <div>
-            <label className="block text-xs text-[#8A8A8A] mb-2 uppercase tracking-wide">Couple ID</label>
-            <div className="bg-[#F7F3ED] p-3 rounded-xl text-[#D9B26D] font-mono text-center select-all text-sm">
-              {coupleId}
-            </div>
+          
+          {/* Recovery Key Section - Important for safety */}
+          <div className="bg-[#FFF8E8] p-4 rounded-2xl border border-[#D9B26D]/20">
+             <label className="block text-[10px] text-[#D9B26D] font-bold mb-1 uppercase tracking-wide">帳號救援金鑰 (重要)</label>
+             <p className="text-[10px] text-[#8A8A8A] mb-2">請務必複製保存此 ID。若更換手機或清除資料，需使用此 ID 登入才能找回回憶。</p>
+             <button onClick={copyId} className="w-full flex justify-between items-center bg-white p-3 rounded-xl border border-[#D9B26D]/30 active:scale-95 transition-transform">
+                 <span className="font-mono text-[#3A3A3A] font-bold text-sm tracking-wide">{coupleId}</span>
+                 {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} className="text-[#D9B26D]" />}
+             </button>
           </div>
+
+          <div className="h-px bg-[#F7F3ED]" />
 
           <div className="flex gap-4">
             <div className="flex-1">
-               <label className="block text-xs text-[#8A8A8A] mb-2">伴侶 1</label>
+               <label className="block text-xs text-[#8A8A8A] mb-2">伴侶 1 暱稱</label>
                <input 
-                 className="w-full border-b border-[#EAEAEA] py-2 outline-none text-sm font-medium text-[#3A3A3A]" 
+                 className="w-full border-b border-[#EAEAEA] py-2 outline-none text-sm font-medium text-[#3A3A3A] focus:border-[#D9B26D] transition-colors" 
                  defaultValue={coupleData?.partner1Name}
                  onBlur={(e) => handleSave(e.target.value, coupleData?.partner2Name || '')}
                  disabled={currentUserRole !== 'partner1'}
                />
             </div>
             <div className="flex-1">
-               <label className="block text-xs text-[#8A8A8A] mb-2">伴侶 2</label>
+               <label className="block text-xs text-[#8A8A8A] mb-2">伴侶 2 暱稱</label>
                <input 
-                 className="w-full border-b border-[#EAEAEA] py-2 outline-none text-sm font-medium text-[#3A3A3A]" 
+                 className="w-full border-b border-[#EAEAEA] py-2 outline-none text-sm font-medium text-[#3A3A3A] focus:border-[#D9B26D] transition-colors" 
                  defaultValue={coupleData?.partner2Name}
                  onBlur={(e) => handleSave(coupleData?.partner1Name || '', e.target.value)}
                  disabled={currentUserRole !== 'partner2'}
@@ -86,13 +100,13 @@ const More: React.FC = () => {
 
         <button 
           onClick={() => { signOut(); navigate('/pairing'); }}
-          className="w-full bg-white text-red-400 border border-red-100 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-red-50 text-sm"
+          className="w-full bg-white text-red-400 border border-red-100 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-red-50 text-sm active:scale-95 transition-transform"
         >
           <LogOut size={16} />
-          登出
+          登出 / 切換帳號
         </button>
 
-        <p className="text-center text-[#C1C1C1] text-[10px] mt-8">Our Bliss v2.1 (English Patch)</p>
+        <p className="text-center text-[#C1C1C1] text-[10px] mt-8">Our Bliss v2.2 (Optimized)</p>
       </div>
     </div>
   );

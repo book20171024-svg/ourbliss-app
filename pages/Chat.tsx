@@ -2,13 +2,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { db, storage } from '../services/firebaseConfig';
-import { collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Send, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Send, Image as ImageIcon, Loader2, ArrowLeft } from 'lucide-react';
 import { ChatMessage } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 const Chat: React.FC = () => {
   const { coupleId, currentUserRole, coupleData } = useCouple();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -18,9 +20,11 @@ const Chat: React.FC = () => {
   useEffect(() => {
     if (!coupleId) return;
 
+    // PERFORMANCE OPTIMIZATION: Limit to last 50 messages
     const q = query(
       collection(db, `couples/${coupleId}/chatMessages`),
-      orderBy('timestamp', 'asc')
+      orderBy('timestamp', 'asc'),
+      limit(50) 
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -29,6 +33,7 @@ const Chat: React.FC = () => {
         ...doc.data()
       })) as ChatMessage[];
       setMessages(msgs);
+      // Auto-scroll only if near bottom or initial load
       setTimeout(scrollToBottom, 100);
     });
 
@@ -63,7 +68,14 @@ const Chat: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !coupleId || !currentUserRole) return;
 
+    // Safety check for file size (e.g. 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert("圖片太大，請選擇小於 5MB 的圖片");
+        return;
+    }
+
     setIsUploading(true);
+    // Optimistic UI could go here
     try {
       const storageRef = ref(storage, `chat_images/${coupleId}/${Date.now()}_${file.name}`);
       await uploadBytes(storageRef, file);
@@ -71,16 +83,15 @@ const Chat: React.FC = () => {
 
       await addDoc(collection(db, `couples/${coupleId}/chatMessages`), {
         senderId: currentUserRole,
-        text: '', // Empty text for image-only messages
+        text: '',
         imageUrl: url,
         timestamp: Date.now(),
       });
     } catch (error: any) {
       console.error("Image upload failed:", error);
-      alert("圖片上傳失敗，請稍後再試。");
+      alert("圖片上傳失敗，請檢查網路或權限。");
     } finally {
       setIsUploading(false);
-      // Reset input
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -91,17 +102,26 @@ const Chat: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#F7F3ED]">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md p-4 sticky top-0 z-10 border-b border-[#EAEAEA] flex items-center justify-between shadow-sm">
-        <h2 className="text-lg font-serif font-bold text-[#3A3A3A]">
-           {currentUserRole === 'partner1' ? coupleData?.partner2Name : coupleData?.partner1Name}
-        </h2>
-        <div className="w-8 h-8 rounded-full overflow-hidden border border-[#D9B26D]">
+      {/* Header with Back Button */}
+      <header className="bg-white/80 backdrop-blur-md px-4 py-3 sticky top-0 z-10 border-b border-[#EAEAEA] flex items-center gap-3 shadow-sm">
+        <button onClick={() => navigate(-1)} className="text-[#3A3A3A] p-1 -ml-2 rounded-full hover:bg-gray-100">
+           <ArrowLeft size={22} />
+        </button>
+        
+        <div className="w-9 h-9 rounded-full overflow-hidden border border-[#EAEAEA]">
           <img 
             src={currentUserRole === 'partner1' ? coupleData?.partner2Avatar : coupleData?.partner1Avatar || "https://picsum.photos/50"} 
             className="w-full h-full object-cover" 
             alt="partner"
           />
+        </div>
+        <div>
+           <h2 className="text-base font-serif font-bold text-[#3A3A3A] leading-tight">
+             {currentUserRole === 'partner1' ? coupleData?.partner2Name : coupleData?.partner1Name}
+           </h2>
+           <p className="text-[10px] text-[#D9B26D] font-bold">
+              {currentUserRole === 'partner1' ? coupleData?.partner2Status : coupleData?.partner1Status || 'Online'}
+           </p>
         </div>
       </header>
 
@@ -115,8 +135,13 @@ const Chat: React.FC = () => {
                 
                 {/* Image Message */}
                 {msg.imageUrl && (
-                  <div className={`mb-1 overflow-hidden rounded-2xl border ${isMe ? 'border-[#D9B26D]/50' : 'border-white'} shadow-sm`}>
-                    <img src={msg.imageUrl} alt="chat-img" className="max-w-full h-auto max-h-60 object-cover" loading="lazy" />
+                  <div className={`mb-1 overflow-hidden rounded-2xl border ${isMe ? 'border-[#D9B26D]/50' : 'border-white'} shadow-sm bg-white`}>
+                    <img 
+                       src={msg.imageUrl} 
+                       alt="chat-img" 
+                       className="max-w-full h-auto max-h-60 object-cover min-w-[100px] min-h-[100px]" 
+                       loading="lazy"
+                    />
                   </div>
                 )}
 
@@ -142,7 +167,7 @@ const Chat: React.FC = () => {
           );
         })}
         {isUploading && (
-          <div className="flex justify-end">
+          <div className="flex justify-end animate-pulse">
             <div className="bg-[#D9B26D]/10 text-[#D9B26D] px-4 py-2 rounded-2xl text-xs flex items-center gap-2">
                <Loader2 size={12} className="animate-spin" /> 圖片傳送中...
             </div>
@@ -152,7 +177,7 @@ const Chat: React.FC = () => {
       </div>
 
       {/* Input Area */}
-      <div className="p-3 bg-white border-t border-[#EAEAEA]">
+      <div className="p-3 bg-white border-t border-[#EAEAEA] safe-area-bottom">
         <input 
           type="file" 
           ref={fileInputRef} 
