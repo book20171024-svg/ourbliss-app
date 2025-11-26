@@ -63,8 +63,9 @@ const Home: React.FC = () => {
     }, (error) => console.log("Event sync error", error));
 
     // 2. Fetch Memories (On This Day Logic)
+    // Integrity Update: Increased limit to 100 to ensure we find older memories for "On This Day"
     const memRef = collection(db, `couples/${coupleId}/memories`);
-    const qMem = query(memRef, orderBy('date', 'desc'), limit(20)); 
+    const qMem = query(memRef, orderBy('date', 'desc'), limit(100)); 
     
     const unsubMem = onSnapshot(qMem, (snap) => {
       const memories = snap.docs.map(d => ({ id: d.id, ...d.data() } as Memory));

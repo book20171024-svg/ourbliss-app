@@ -57,7 +57,7 @@ const More: React.FC = () => {
         URL.revokeObjectURL(url);
     } catch (err) {
         console.error(err);
-        alert("匯出失敗，請檢查網路。");
+        alert("匯出失敗，請檢查權限或網路。");
     } finally {
         setBackingUp(false);
     }
@@ -80,7 +80,6 @@ const More: React.FC = () => {
             const json = JSON.parse(event.target?.result as string);
             
             // 1. Restore Profile (Optional, mostly we keep current ID but update names if needed)
-            // Not overwriting ID to allow restoring data to a NEW couple ID
             if(json.profile) {
                 await updateCoupleData({
                     partner1Name: json.profile.partner1Name,
@@ -309,7 +308,7 @@ const More: React.FC = () => {
           登出 / 切換帳號
         </button>
 
-        <p className="text-center text-[#C1C1C1] text-[10px] mt-8">Our Bliss v2.6</p>
+        <p className="text-center text-[#C1C1C1] text-[10px] mt-8">Our Bliss v3.0 (Final)</p>
       </div>
     </div>
   );
