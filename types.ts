@@ -27,9 +27,11 @@ export interface Memory {
   location: string;
   description: string;
   images: string[]; // Max 3 images
-  mood?: 'happy' | 'romantic' | 'adventure' | 'chill';
+  mood?: string; // Changed to string to allow custom emojis
   aiSummary?: string;
   likes: string[];
+  imageUrl?: string; // Legacy support
+  importedAt?: string; // Legacy support
 }
 
 export interface ChatMessage {

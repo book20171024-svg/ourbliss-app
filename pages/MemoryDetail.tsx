@@ -29,8 +29,11 @@ const MemoryDetail: React.FC = () => {
   const [editTime, setEditTime] = useState('');
   const [editLocation, setEditLocation] = useState('');
   const [editDesc, setEditDesc] = useState('');
-  const [editMood, setEditMood] = useState<Memory['mood']>('happy');
+  const [editMood, setEditMood] = useState<string>('😊');
   const [uploadingImg, setUploadingImg] = useState(false);
+  
+  // Lightbox State
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,7 +53,12 @@ const MemoryDetail: React.FC = () => {
         setEditTime(data.time || '');
         setEditLocation(data.location);
         setEditDesc(data.description);
-        setEditMood(data.mood || 'happy');
+        // Handle legacy moods for edit state initial value
+        const legacyMoodMap: Record<string, string> = {
+            'happy': '😊', 'romantic': '🥰', 'adventure': '🧗', 'chill': '☕️'
+        };
+        const currentMood = data.mood || '😊';
+        setEditMood(legacyMoodMap[currentMood] || currentMood);
       }
     });
 
@@ -139,6 +147,16 @@ const MemoryDetail: React.FC = () => {
     }
   }
 
+  // Helper to render mood (backward compatibility for legacy string values)
+  const renderMood = (m?: string) => {
+    if (!m) return null;
+    if (m === 'happy') return '😊';
+    if (m === 'romantic') return '🥰';
+    if (m === 'adventure') return '🧗';
+    if (m === 'chill') return '☕️';
+    return m; // Return custom emoji/text directly
+  };
+
   if (!memory || !coupleData) return <div className="p-6 text-center text-[#D9B26D]">載入中...</div>;
 
   return (
@@ -179,10 +197,15 @@ const MemoryDetail: React.FC = () => {
           <div className="flex gap-4 overflow-x-auto px-6 w-full snap-x">
              {memory.images && memory.images.length > 0 ? (
                  memory.images.map((img, idx) => (
-                    <div key={idx} className="relative flex-shrink-0 w-full max-w-sm snap-center">
-                        <img src={img} alt="" className="w-full h-auto max-h-[60vh] object-contain rounded-lg" />
+                    <div key={idx} className="relative flex-shrink-0 w-full max-w-sm snap-center group">
+                        <img 
+                          src={img} 
+                          alt="" 
+                          className="w-full h-auto max-h-[60vh] object-contain rounded-lg cursor-zoom-in transition-transform"
+                          onClick={() => setLightboxImg(img)} 
+                        />
                         {isEditing && (
-                            <button onClick={() => removeImage(img)} className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full shadow-md">
+                            <button onClick={(e) => { e.stopPropagation(); removeImage(img); }} className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full shadow-md">
                                 <X size={16} />
                             </button>
                         )}
@@ -191,7 +214,7 @@ const MemoryDetail: React.FC = () => {
              ) : (
                  // Backwards compatibility
                  // @ts-ignore
-                 memory.imageUrl && <img src={memory.imageUrl} className="w-full h-auto max-h-[60vh] object-contain" />
+                 memory.imageUrl && <img src={memory.imageUrl} className="w-full h-auto max-h-[60vh] object-contain cursor-zoom-in" onClick={() => setLightboxImg(memory.imageUrl)} />
              )}
              
              {isEditing && (!memory.images || memory.images.length < 3) && (
@@ -244,12 +267,13 @@ const MemoryDetail: React.FC = () => {
                />
                <div className="flex items-center gap-2 border-b border-[#EAEAEA] py-2">
                   <Smile size={16} className="text-[#C1C1C1]" />
-                  <select className="w-full outline-none text-sm bg-transparent" value={editMood} onChange={(e:any) => setEditMood(e.target.value)}>
-                    <option value="happy">開心 😊</option>
-                    <option value="romantic">浪漫 🥰</option>
-                    <option value="adventure">冒險 🧗</option>
-                    <option value="chill">放鬆 ☕️</option>
-                  </select>
+                  {/* Custom Mood Input for Edit Mode */}
+                  <input 
+                    className="w-full outline-none text-sm bg-transparent"
+                    placeholder="表情 (e.g. 😊)"
+                    value={editMood}
+                    onChange={(e) => setEditMood(e.target.value)}
+                  />
                </div>
                <textarea 
                   className="w-full border border-[#EAEAEA] rounded-xl p-3 text-sm h-32 outline-none resize-none"
@@ -279,7 +303,7 @@ const MemoryDetail: React.FC = () => {
                    </div>
                 </div>
                 {memory.mood && <span className="text-2xl">
-                  {memory.mood === 'happy' ? '😊' : memory.mood === 'romantic' ? '🥰' : memory.mood === 'adventure' ? '🧗' : '☕️'}
+                  {renderMood(memory.mood)}
                 </span>}
               </div>
 
@@ -343,6 +367,23 @@ const MemoryDetail: React.FC = () => {
           <Send size={18} />
         </button>
       </div>
+      
+      {/* Lightbox Overlay */}
+      {lightboxImg && (
+        <div 
+           className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-fade-in cursor-zoom-out"
+           onClick={() => setLightboxImg(null)}
+        >
+           <img 
+             src={lightboxImg} 
+             className="max-w-full max-h-full object-contain pointer-events-none" 
+             alt="Full view"
+           />
+           <button className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 rounded-full p-2">
+             <X size={24} />
+           </button>
+        </div>
+      )}
     </div>
   );
 };

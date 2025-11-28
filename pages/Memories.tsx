@@ -27,7 +27,8 @@ const Memories: React.FC = () => {
   const [timeInput, setTimeInput] = useState(new Date().toTimeString().slice(0, 5));
   const [desc, setDesc] = useState('');
   const [location, setLocation] = useState('');
-  const [mood, setMood] = useState<'happy' | 'romantic' | 'adventure' | 'chill'>('happy');
+  // Default mood as an emoji, but type is string
+  const [mood, setMood] = useState<string>('😊');
   const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,7 +92,7 @@ const Memories: React.FC = () => {
         date: dateInput,
         time: timeInput,
         location,
-        mood,
+        mood, // Save exact string/emoji
         images: imageUrls,
         likes: []
       });
@@ -111,9 +112,19 @@ const Memories: React.FC = () => {
     setTitle('');
     setDesc('');
     setLocation('');
-    setMood('happy');
+    setMood('😊');
     setDateInput(new Date().toISOString().split('T')[0]);
     setTimeInput(new Date().toTimeString().slice(0, 5));
+  };
+
+  // Helper to render mood (backward compatibility for legacy string values)
+  const renderMood = (m?: string) => {
+    if (!m) return null;
+    if (m === 'happy') return '😊';
+    if (m === 'romantic') return '🥰';
+    if (m === 'adventure') return '🧗';
+    if (m === 'chill') return '☕️';
+    return m; // Return custom emoji/text directly
   };
 
   return (
@@ -161,7 +172,7 @@ const Memories: React.FC = () => {
                   <span>{mem.date}</span>
                </div>
                {mem.mood && <span className="text-lg">
-                  {mem.mood === 'happy' ? '😊' : mem.mood === 'romantic' ? '🥰' : mem.mood === 'adventure' ? '🧗' : '☕️'}
+                  {renderMood(mem.mood)}
                </span>}
             </div>
 
@@ -244,14 +255,15 @@ const Memories: React.FC = () => {
                     <MapPin size={18} className="text-[#C1C1C1]" />
                     <input placeholder="地點" className="w-full outline-none text-sm bg-transparent" value={location} onChange={e => setLocation(e.target.value)} />
                  </div>
+                 {/* Custom Mood Input */}
                  <div className="flex-1 flex items-center gap-2 border border-[#EAEAEA] rounded-2xl px-3 py-3 bg-white">
                     <Smile size={18} className="text-[#C1C1C1]" />
-                    <select className="w-full outline-none text-sm bg-transparent" value={mood} onChange={(e:any) => setMood(e.target.value)}>
-                      <option value="happy">開心 😊</option>
-                      <option value="romantic">浪漫 🥰</option>
-                      <option value="adventure">冒險 🧗</option>
-                      <option value="chill">放鬆 ☕️</option>
-                    </select>
+                    <input 
+                      className="w-full outline-none text-sm bg-transparent" 
+                      placeholder="表情 (e.g. 😊)"
+                      value={mood} 
+                      onChange={(e) => setMood(e.target.value)} 
+                    />
                  </div>
               </div>
 

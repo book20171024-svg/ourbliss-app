@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { db, storage } from '../services/firebaseConfig';
@@ -171,7 +170,8 @@ const Chat: React.FC = () => {
       </div>
 
       {/* Input Area - Fixed Bottom - White Background - Safe Area Aware */}
-      <div className="bg-white p-2 border-t border-[#EAEAEA] flex-shrink-0 safe-area-bottom pb-4">
+      {/* Removed 'pb-4' to prevent conflict with safe-area-bottom which now has !important */}
+      <div className="bg-white p-2 border-t border-[#EAEAEA] flex-shrink-0 safe-area-bottom">
         <input 
           type="file" 
           ref={fileInputRef} 

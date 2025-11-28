@@ -33,6 +33,9 @@ const Home: React.FC = () => {
   const [dailyMessage, setDailyMessage] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  
+  // Local loading state for async data
+  const [isContentReady, setIsContentReady] = useState(false);
 
   // Calculate days passed
   const today = new Date();
@@ -60,12 +63,13 @@ const Home: React.FC = () => {
       } else {
         setTodayEvent(null);
       }
+      setIsContentReady(true);
     }, (error) => console.log("Event sync error", error));
 
     // 2. Fetch Memories (On This Day Logic)
-    // Integrity Update: Increased limit to 100 to ensure we find older memories for "On This Day"
+    // Integrity Update: Increased limit to 365 to ensure we find older memories from a year ago
     const memRef = collection(db, `couples/${coupleId}/memories`);
-    const qMem = query(memRef, orderBy('date', 'desc'), limit(100)); 
+    const qMem = query(memRef, orderBy('date', 'desc'), limit(365)); 
     
     const unsubMem = onSnapshot(qMem, (snap) => {
       const memories = snap.docs.map(d => ({ id: d.id, ...d.data() } as Memory));
@@ -268,7 +272,18 @@ const Home: React.FC = () => {
 
            {/* Main Content Card */}
            <div className="bg-white rounded-[32px] shadow-xl shadow-[#D9B26D]/10 overflow-hidden relative aspect-[4/5] w-full max-h-[400px] border border-white mx-auto">
-            {todayEvent ? (
+            {!isContentReady ? (
+              // Skeleton Loading State
+              <div className="w-full h-full p-8 flex flex-col justify-between bg-white animate-pulse">
+                 <div>
+                    <div className="w-24 h-6 bg-gray-100 rounded-full mb-4"></div>
+                    <div className="w-3/4 h-8 bg-gray-100 rounded-lg mb-2"></div>
+                    <div className="w-1/2 h-8 bg-gray-100 rounded-lg mb-4"></div>
+                    <div className="w-1/3 h-4 bg-gray-100 rounded-lg"></div>
+                 </div>
+                 <div className="self-end w-12 h-12 bg-gray-100 rounded-full"></div>
+              </div>
+            ) : todayEvent ? (
               <div 
                 onClick={() => navigate(`/event-edit/${todayEvent.id}`)}
                 className="w-full h-full p-8 flex flex-col justify-between bg-gradient-to-br from-white to-[#F7F3ED] cursor-pointer"

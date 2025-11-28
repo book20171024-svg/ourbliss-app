@@ -100,7 +100,7 @@ const LockScreen: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-[#F7F3ED] flex flex-col items-center justify-center p-8 relative">
+    <div className="h-[100dvh] w-full bg-[#F7F3ED] flex flex-col items-center justify-center p-6 relative">
        <div className="mb-8 flex flex-col items-center">
           <div className="w-16 h-16 bg-[#D9B26D] rounded-full flex items-center justify-center text-white mb-4 shadow-lg shadow-[#D9B26D]/30">
             <Lock size={32} />
@@ -109,18 +109,19 @@ const LockScreen: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
           <p className="text-[#8A8A8A] text-sm">請輸入密碼解鎖</p>
        </div>
 
-       <div className="flex gap-4 mb-12">
+       <div className="flex gap-4 mb-10">
           {[0, 1, 2, 3].map(i => (
              <div key={i} className={`w-4 h-4 rounded-full border border-[#D9B26D] transition-all duration-300 ${pin.length > i ? 'bg-[#D9B26D]' : 'bg-transparent'} ${error ? 'animate-shake border-red-400 bg-red-400' : ''}`} />
           ))}
        </div>
 
-       <div className="grid grid-cols-3 gap-x-8 gap-y-6 w-full max-w-[280px]">
+       {/* Optimized Keypad Grid for Mobile */}
+       <div className="grid grid-cols-3 gap-6 w-full max-w-[260px]">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
             <button 
               key={num} 
               onClick={() => handleNumClick(num.toString())}
-              className="w-16 h-16 rounded-full bg-white shadow-sm border border-[#EAEAEA] text-xl font-bold text-[#3A3A3A] active:bg-[#F0F0F0] active:scale-95 transition-all"
+              className="aspect-square rounded-full bg-white shadow-sm border border-[#EAEAEA] text-2xl font-bold text-[#3A3A3A] active:bg-[#F0F0F0] active:scale-95 transition-all flex items-center justify-center"
             >
               {num}
             </button>
@@ -128,13 +129,13 @@ const LockScreen: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
           <div />
           <button 
              onClick={() => handleNumClick('0')}
-             className="w-16 h-16 rounded-full bg-white shadow-sm border border-[#EAEAEA] text-xl font-bold text-[#3A3A3A] active:bg-[#F0F0F0] active:scale-95 transition-all"
+             className="aspect-square rounded-full bg-white shadow-sm border border-[#EAEAEA] text-2xl font-bold text-[#3A3A3A] active:bg-[#F0F0F0] active:scale-95 transition-all flex items-center justify-center"
           >
             0
           </button>
           <button 
              onClick={handleDelete}
-             className="w-16 h-16 rounded-full flex items-center justify-center text-[#3A3A3A] active:scale-95 transition-all"
+             className="aspect-square rounded-full flex items-center justify-center text-[#3A3A3A] active:scale-95 transition-all"
           >
             ✕
           </button>

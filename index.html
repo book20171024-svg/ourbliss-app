@@ -4,6 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
     <title>Our Bliss</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#F7F3ED" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Our Bliss" />
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2530/2530863.png" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
@@ -37,8 +46,9 @@
         scrollbar-width: none;
       }
       /* Utility class for iPhone Safe Area Bottom */
+      /* Use !important to ensure it overrides default tailwind padding */
       .safe-area-bottom {
-        padding-bottom: calc(1rem + var(--sab));
+        padding-bottom: calc(1rem + var(--sab)) !important;
       }
       /* Soft Gold Gradient Text */
       .text-gold-gradient {
@@ -72,6 +82,15 @@
       .animate-scale-in {
         animation: scale-in 0.2s ease-out forwards;
       }
+      /* Shake Animation for Wrong Password */
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+      .animate-shake {
+        animation: shake 0.2s ease-in-out;
+      }
     </style>
   <script type="importmap">
 {
@@ -79,6 +98,7 @@
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
     "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
     "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
