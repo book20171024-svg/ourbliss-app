@@ -27,7 +27,7 @@ export interface Memory {
   location: string;
   description: string;
   images: string[]; // Max 3 images
-  mood?: string; // Changed to string to allow custom emojis
+  mood?: string; // Can be any string (emoji or text)
   aiSummary?: string;
   likes: string[];
   imageUrl?: string; // Legacy support

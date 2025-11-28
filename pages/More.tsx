@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCouple } from '../context/CoupleContext';
-import { MessageCircle, LogOut, Save, Gift, BookHeart, ChevronRight, Sparkles, User, Settings, Copy, Check, Download, Lock, ShieldCheck, Loader2, FileText, Upload } from 'lucide-react';
+import { MessageCircle, LogOut, Save, Gift, BookHeart, ChevronRight, Sparkles, User, Settings, Copy, Check, Download, Lock, ShieldCheck, Loader2, FileText, Upload, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, writeBatch, doc, setDoc, addDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
@@ -44,13 +44,18 @@ const More: React.FC = () => {
   };
 
   const handleCopyId = () => {
-    if (coupleId) {
-      navigator.clipboard.writeText(coupleId).then(() => {
-        alert("Couple ID 已複製！");
-      }).catch(() => {
-        alert("複製失敗，請長按下方 ID 手動複製");
-      });
+    // Fallback copy method
+    const textArea = document.createElement("textarea");
+    textArea.value = coupleId || "";
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert("Couple ID 已複製！");
+    } catch (err) {
+      alert("複製失敗，請手動選取 ID");
     }
+    document.body.removeChild(textArea);
   };
 
   // --- App Lock Logic ---
@@ -149,9 +154,6 @@ const More: React.FC = () => {
            }
         };
 
-        // 1. Restore Profile (Optional, maybe manually skip)
-        // await updateCoupleData(json.profile);
-
         // 2. Restore Collections
         const collections = ['memories', 'events', 'goals', 'chatMessages', 'anniversaries'];
         for (const colName of collections) {
@@ -181,88 +183,153 @@ const More: React.FC = () => {
     reader.readAsText(file);
   };
 
-  // --- Batch Import Logic (Improved Regex) ---
+  // --- Robust Batch Import Logic (Hybrid Parser) ---
   const handleBatchImport = async () => {
     if (!importText.trim()) return;
     setIsImporting(true);
     
     try {
-      // Split by '【日期】' to separate entries. 
-      const blocks = importText.split(/(?=【日期】)/).filter(b => b.trim().length > 0);
+      const rawLines = importText.split('\n');
+      const memoriesToImport: any[] = [];
+      
+      let currentMemory: any = null;
+      let captureMode: 'desc' | 'comment' = 'desc';
 
-      if (blocks.length === 0) {
-         alert("❌ 找不到【日期】標籤，請確認格式。");
+      // Helper to finalize a memory block
+      const finalizeCurrent = () => {
+        if (currentMemory && currentMemory.date) {
+           memoriesToImport.push(currentMemory);
+        }
+      };
+
+      // Regex for "Date Line"
+      // Supports: "【日期】2020/01/01" OR "🌟 2020-01-01｜Title"
+      const tagDateRegex = /[【\[]日期[】\]]\s*(.*)/;
+      const blogDateRegex = /(\d{4}[-/.]\d{1,2}[-/.]\d{1,2})/; 
+
+      for (let line of rawLines) {
+        line = line.trim();
+        if (!line) continue;
+
+        // 1. Check if line starts a NEW memory (contains a date pattern)
+        const tagMatch = line.match(tagDateRegex);
+        const blogMatch = line.match(blogDateRegex);
+
+        if (tagMatch || blogMatch) {
+            // Push previous memory
+            finalizeCurrent();
+            
+            // Start new memory
+            currentMemory = {
+                title: '未命名回憶',
+                date: '',
+                location: '',
+                description: '',
+                mood: '😊',
+                comment: ''
+            };
+            captureMode = 'desc';
+
+            if (tagMatch) {
+                // Style A: 【日期】2020/01/01
+                currentMemory.date = tagMatch[1].trim().replace(/\//g, '-').replace(/[（(].*[)）]/g, '');
+            } else if (blogMatch) {
+                // Style B: 🌟 2019-10-20｜Title
+                // Extract Mood (First char if emoji)
+                const firstChar = line.charAt(0);
+                // Simple check for Emoji range or specific chars
+                if (firstChar.match(/\p{Emoji}/u) || firstChar === '🌟' || firstChar === '✨') {
+                    currentMemory.mood = firstChar;
+                }
+                
+                // Extract Date
+                currentMemory.date = blogMatch[1].replace(/\//g, '-');
+                
+                // Extract Title (After separator | or ｜)
+                const parts = line.split(/[|｜]/);
+                if (parts.length > 1) {
+                    currentMemory.title = parts[1].trim();
+                }
+            }
+            continue;
+        }
+
+        // If no current memory, skip
+        if (!currentMemory) continue;
+
+        // 2. Check for Tags (Style A)
+        const titleMatch = line.match(/[【\[]標題[】\]]\s*(.*)/);
+        if (titleMatch) { currentMemory.title = titleMatch[1].trim(); continue; }
+
+        const locMatch = line.match(/[【\[]地點[】\]]\s*(.*)/);
+        if (locMatch) { currentMemory.location = locMatch[1].trim(); continue; }
+        
+        const contentMatch = line.match(/[【\[]內容[】\]]/);
+        if (contentMatch) { captureMode = 'desc'; continue; }
+
+        // 3. Check for Comments (Style A & B)
+        // Matches: 【對方留言】, —留言—, ---留言---
+        if (line.match(/[【\[]對方留言[】\]]/) || line.includes('—留言—') || line.includes('---')) {
+            captureMode = 'comment';
+            continue;
+        }
+
+        // 4. Check for ignored keywords
+        if (line.includes('（留空）') || line.includes('待補')) continue;
+
+        // 5. Append Content
+        if (captureMode === 'desc') {
+            currentMemory.description += (currentMemory.description ? '\n' : '') + line;
+        } else {
+            currentMemory.comment += (currentMemory.comment ? '\n' : '') + line;
+        }
+      }
+      
+      // Finalize last block
+      finalizeCurrent();
+
+      if (memoriesToImport.length === 0) {
+         alert("❌ 找不到有效的日期格式。\n支援格式 1：【日期】2020/01/01\n支援格式 2：🌟 2020-01-01｜標題");
          setIsImporting(false);
          return;
       }
 
-      alert(`⏳ 偵測到 ${blocks.length} 筆資料，開始匯入...`);
+      alert(`⏳ 偵測到 ${memoriesToImport.length} 筆資料，正在匯入...`);
       
-      let successCount = 0;
-
-      for (const block of blocks) {
-         const getTagContent = (tagName: string) => {
-            const regex = new RegExp(`【${tagName}】\\s*([\\s\\S]*?)(?=\\n+【|$)`, 'i');
-            const match = block.match(regex);
-            return match ? match[1].trim() : '';
-         };
-
-         // 1. Parse Date
-         let dateRaw = getTagContent('日期'); // e.g., 2019/10/20（週日）
-         // Clean: remove brackets content, replace / with -
-         let dateStr = dateRaw.replace(/[\(（].*?[\)）]/g, '').trim().replace(/\//g, '-');
-         
-         if (!dateStr || dateStr.length < 8) {
-             console.warn("Skipping block due to invalid date:", dateRaw);
-             continue;
-         }
-
-         // 2. Parse Title
-         const title = getTagContent('標題') || '未命名回憶';
-
-         // 3. Parse Location
-         let location = getTagContent('地點');
-         if (location.includes('留空') || location.includes('待補')) location = '';
-
-         // 4. Parse Content
-         const description = getTagContent('內容');
-
-         // 5. Parse Partner Comment
-         const partnerComment = getTagContent('對方留言');
-
-         // Save Memory
-         const memRef = await addDoc(collection(db, `couples/${coupleId}/memories`), {
-            title,
-            date: dateStr,
-            location,
-            description,
-            mood: 'happy',
+      let count = 0;
+      for (const mem of memoriesToImport) {
+          // Add Memory
+          const memRef = await addDoc(collection(db, `couples/${coupleId}/memories`), {
+            title: mem.title,
+            date: mem.date,
+            location: mem.location,
+            description: mem.description,
+            mood: mem.mood,
             images: [], 
             likes: [],
             importedAt: new Date().toISOString()
          });
 
-         // Save Comment if exists
-         if (partnerComment && !partnerComment.includes('無') && !partnerComment.includes('待補')) {
+         // Add Comment if exists
+         if (mem.comment) {
              const partnerRole = currentUserRole === 'partner1' ? 'partner2' : 'partner1';
              await addDoc(collection(db, `couples/${coupleId}/memories/${memRef.id}/comments`), {
                 senderId: partnerRole,
-                text: partnerComment,
+                text: mem.comment,
                 timestamp: Date.now()
              });
          }
-         
-         successCount++;
+         count++;
       }
 
-      alert(`🎉 成功匯入 ${successCount} 筆回憶！`);
+      alert(`🎉 成功匯入 ${count} 筆回憶！`);
       setImportText('');
       setShowBatchImport(false);
       navigate('/memories');
 
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("匯入發生錯誤，請檢查格式。");
+      alert(`匯入發生錯誤: ${e.message}`);
     } finally {
       setIsImporting(false);
     }
@@ -402,7 +469,9 @@ const More: React.FC = () => {
               
               <div className="flex justify-center gap-4 mb-8">
                  {[0, 1, 2, 3].map(i => (
-                    <div key={i} className={`w-4 h-4 rounded-full border border-[#D9B26D] ${pinInput.length > i ? 'bg-[#D9B26D]' : 'bg-transparent'}`} />
+                    <div key={i} className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center text-xl font-bold ${pinInput.length > i ? 'border-[#D9B26D] text-[#D9B26D]' : 'border-[#F7F3ED] text-[#C1C1C1]'}`}>
+                       {pinInput.length > i ? '•' : ''}
+                    </div>
                  ))}
               </div>
 
@@ -430,16 +499,13 @@ const More: React.FC = () => {
            </div>
            <div className="p-6 flex-1 flex flex-col">
               <p className="text-xs text-[#8A8A8A] mb-4 leading-relaxed">
-                請將整理好的文字貼在下方。格式範例：<br/>
-                【日期】2020/01/01 <br/>
-                【標題】跨年 <br/>
-                【地點】101 <br/>
-                【內容】... <br/>
-                【對方留言】...
+                支援兩種格式 (可混用)：<br/>
+                1. 【日期】2020/01/01<br/>
+                2. 🌟 2020-01-01｜標題
               </p>
               <textarea 
                 className="flex-1 w-full bg-white rounded-xl border border-[#EAEAEA] p-4 text-xs font-mono leading-relaxed outline-none resize-none mb-4"
-                placeholder="在此貼上..."
+                placeholder="在此貼上您的回憶文字..."
                 value={importText}
                 onChange={e => setImportText(e.target.value)}
               />
@@ -448,7 +514,7 @@ const More: React.FC = () => {
                 disabled={isImporting} 
                 className="w-full bg-[#D9B26D] text-white py-4 rounded-full font-bold shadow-lg disabled:opacity-50"
               >
-                {isImporting ? '匯入處理中...' : '開始匯入'}
+                {isImporting ? '分析匯入中...' : '開始匯入'}
               </button>
            </div>
         </div>
