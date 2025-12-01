@@ -4,7 +4,7 @@ import { Memory } from "../types";
 
 // ⚠️⚠️⚠️ 請在這裡填入您的 Google Gemini API Key ⚠️⚠️⚠️
 // 您可以從 https://aistudio.google.com/ 申請免費 Key
-const API_KEY = "請在此填入您的API_KEY"; 
+const API_KEY = "AIzaSyBheCNjLLPxcv53e_CVGo3joY2vEjU8yn0"; 
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
