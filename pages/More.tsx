@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCouple } from '../context/CoupleContext';
-import { MessageCircle, LogOut, Save, Gift, BookHeart, ChevronRight, Sparkles, User, Settings, Copy, Check, Download, Lock, ShieldCheck, Loader2, FileText, Upload, RefreshCw } from 'lucide-react';
+import { MessageCircle, LogOut, Save, Gift, BookHeart, ChevronRight, Sparkles, User, Settings, Copy, Check, Download, Lock, ShieldCheck, Loader2, FileText, Upload, RefreshCw, ArrowUp, ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, writeBatch, doc, setDoc, addDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
@@ -232,7 +232,8 @@ const More: React.FC = () => {
 
             if (tagMatch) {
                 // Style A: 【日期】2020/01/01
-                currentMemory.date = tagMatch[1].trim().replace(/\//g, '-').replace(/[（(].*[)）]/g, '');
+                // Clean: remove everything inside brackets (like weekday) and standardize separators
+                currentMemory.date = tagMatch[1].trim().replace(/\//g, '-').replace(/[（(].*[)）]/g, '').trim();
             } else if (blogMatch) {
                 // Style B: 🌟 2019-10-20｜Title
                 // Extract Mood (First char if emoji)
@@ -313,10 +314,37 @@ const More: React.FC = () => {
          // Add Comment if exists
          if (mem.comment) {
              const partnerRole = currentUserRole === 'partner1' ? 'partner2' : 'partner1';
+             
+             // FIX: Calculate timestamp from MEMORY date, NOT current date
+             let commentTimestamp = Date.now();
+             try {
+                // Ensure format YYYY-MM-DD
+                const cleanDate = mem.date.trim();
+                const parts = cleanDate.split('-');
+                if (parts.length === 3) {
+                   const y = parseInt(parts[0]);
+                   const m = parseInt(parts[1]) - 1; // Month is 0-indexed
+                   const d = parseInt(parts[2]);
+                   // Set to noon (12:00:00) on that day to avoid timezone rolling to previous day
+                   commentTimestamp = new Date(y, m, d, 12, 0, 0).getTime();
+                } else {
+                   // Fallback parse
+                   commentTimestamp = new Date(cleanDate).getTime();
+                }
+             } catch (e) {
+                console.warn("Date parsing error for comment:", mem.date);
+                commentTimestamp = Date.now();
+             }
+
+             // Handle NaN from invalid dates
+             if (isNaN(commentTimestamp)) {
+                commentTimestamp = Date.now();
+             }
+
              await addDoc(collection(db, `couples/${coupleId}/memories/${memRef.id}/comments`), {
                 senderId: partnerRole,
-                text: mem.comment,
-                timestamp: Date.now()
+                text: mem.comment.trim(),
+                timestamp: commentTimestamp
              });
          }
          count++;
@@ -497,7 +525,7 @@ const More: React.FC = () => {
              <h3 className="font-bold text-[#3A3A3A]">匯入回憶</h3>
              <div />
            </div>
-           <div className="p-6 flex-1 flex flex-col">
+           <div className="p-6 flex-1 flex flex-col overflow-y-auto">
               <p className="text-xs text-[#8A8A8A] mb-4 leading-relaxed">
                 支援兩種格式 (可混用)：<br/>
                 1. 【日期】2020/01/01<br/>
@@ -512,7 +540,7 @@ const More: React.FC = () => {
               <button 
                 onClick={handleBatchImport}
                 disabled={isImporting} 
-                className="w-full bg-[#D9B26D] text-white py-4 rounded-full font-bold shadow-lg disabled:opacity-50"
+                className="w-full bg-[#D9B26D] text-white py-4 rounded-full font-bold shadow-lg disabled:opacity-50 flex-shrink-0"
               >
                 {isImporting ? '分析匯入中...' : '開始匯入'}
               </button>

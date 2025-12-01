@@ -160,14 +160,14 @@ const MemoryDetail: React.FC = () => {
   if (!memory || !coupleData) return <div className="p-6 text-center text-[#D9B26D]">載入中...</div>;
 
   return (
-    <div className="min-h-full bg-[#3A3A3A] text-white flex flex-col relative">
+    <div className="h-full bg-[#3A3A3A] text-white flex flex-col relative overflow-hidden">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20 bg-gradient-to-b from-black/50 to-transparent">
-        <button onClick={() => navigate(-1)} className="text-white p-2">
+      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20 bg-gradient-to-b from-black/50 to-transparent pointer-events-none">
+        <button onClick={() => navigate(-1)} className="text-white p-2 pointer-events-auto drop-shadow-md">
           <ArrowLeft size={24} />
         </button>
-        <div className="relative">
-          <button onClick={() => setShowMenu(!showMenu)} className="text-white p-2">
+        <div className="relative pointer-events-auto">
+          <button onClick={() => setShowMenu(!showMenu)} className="text-white p-2 drop-shadow-md">
             <MoreVertical size={24} />
           </button>
           
@@ -190,11 +190,11 @@ const MemoryDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      {/* Scrollable Content Area - FIX: Add overflow-y-auto and pb-24 */}
+      <div className="flex-1 overflow-y-auto pb-24">
         {/* Media Display */}
-        <div className="flex-1 bg-black flex items-center justify-center relative min-h-[40vh] py-16">
-          <div className="flex gap-4 overflow-x-auto px-6 w-full snap-x">
+        <div className="bg-black flex items-center justify-center relative min-h-[40vh] py-16">
+          <div className="flex gap-4 overflow-x-auto px-6 w-full snap-x hide-scrollbar">
              {memory.images && memory.images.length > 0 ? (
                  memory.images.map((img, idx) => (
                     <div key={idx} className="relative flex-shrink-0 w-full max-w-sm snap-center group">
@@ -228,7 +228,7 @@ const MemoryDetail: React.FC = () => {
         </div>
 
         {/* Info & Actions */}
-        <div className="bg-white text-[#3A3A3A] rounded-t-3xl -mt-6 p-6 min-h-[40vh] shadow-[0_-4px_20px_rgba(0,0,0,0.2)] z-10">
+        <div className="bg-white text-[#3A3A3A] rounded-t-3xl -mt-6 p-6 min-h-[40vh] shadow-[0_-4px_20px_rgba(0,0,0,0.2)] z-10 relative">
           
           {isEditing ? (
              <div className="space-y-4 mb-6">
@@ -329,7 +329,7 @@ const MemoryDetail: React.FC = () => {
           </div>
 
           {/* Comments Section */}
-          <div className="space-y-5 mb-20">
+          <div className="space-y-5">
             {comments.map(comment => {
               const name = comment.senderId === 'partner1' ? coupleData.partner1Name : coupleData.partner2Name;
               const avatar = comment.senderId === 'partner1' ? coupleData.partner1Avatar : coupleData.partner2Avatar;
@@ -351,8 +351,8 @@ const MemoryDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Comment Input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-3 border-t border-[#EAEAEA] flex items-center gap-2 max-w-md mx-auto pb-6 z-20">
+      {/* Comment Input - Fixed Bottom - Safe Area Aware */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white p-3 border-t border-[#EAEAEA] flex items-center gap-2 max-w-md mx-auto z-30 safe-area-bottom">
         <input 
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
@@ -376,12 +376,9 @@ const MemoryDetail: React.FC = () => {
         >
            <img 
              src={lightboxImg} 
-             className="max-w-full max-h-full object-contain pointer-events-none" 
-             alt="Full view"
+             className="max-w-full max-h-full object-contain p-2"
+             alt="Full View" 
            />
-           <button className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 rounded-full p-2">
-             <X size={24} />
-           </button>
         </div>
       )}
     </div>
