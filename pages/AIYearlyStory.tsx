@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { db } from '../services/firebaseConfig';
-import { collection, getCountFromServer, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, setDoc, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { generateYearlyStory } from '../services/geminiService';
-import { Sparkles, ArrowLeft, Book } from 'lucide-react';
+import { Sparkles, ArrowLeft, Book, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Memory } from '../types';
 
 const AIYearlyStory: React.FC = () => {
   const { coupleData, coupleId } = useCouple();
@@ -12,23 +14,25 @@ const AIYearlyStory: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [story, setStory] = useState('');
   
-  const currentYear = new Date().getFullYear().toString();
+  // Allow user to select year
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     if (!coupleId) return;
-    const ref = doc(db, `couples/${coupleId}/aiSummaries`, `yearly_${currentYear}`);
+    const ref = doc(db, `couples/${coupleId}/aiSummaries`, `yearly_${selectedYear}`);
     
-    // Switch to onSnapshot to avoid "offline" errors from getDoc
     const unsubscribe = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
         setStory(snap.data().content);
+      } else {
+        setStory(''); // Reset if no story for this year
       }
     }, (error) => {
        console.warn("Snapshot error:", error);
     });
     
     return () => unsubscribe();
-  }, [coupleId, currentYear]);
+  }, [coupleId, selectedYear]);
 
   const handleGenerate = async () => {
     if (!coupleId || !coupleData) return;
@@ -41,36 +45,46 @@ const AIYearlyStory: React.FC = () => {
     setLoading(true);
 
     try {
-      // Get count of memories
-      const coll = collection(db, `couples/${coupleId}/memories`);
-      // getCountFromServer requires network; fallbacks might be needed in full offline mode
-      // but for generating AI story, we assume online.
-      const snapshot = await getCountFromServer(coll);
-      const count = snapshot.data().count;
+      // Fetch memories ONLY for that year
+      const start = `${selectedYear}-01-01`;
+      const end = `${selectedYear}-12-31`;
+      
+      const q = query(
+        collection(db, `couples/${coupleId}/memories`),
+        where("date", ">=", start),
+        where("date", "<=", end)
+      );
+
+      const snap = await getDocs(q);
+      const memories = snap.docs.map(d => d.data() as Memory);
+      const count = memories.length;
 
       if (count === 0) {
-        setStory("這一年還沒有紀錄回憶，無法生成故事。");
+        setStory(`${selectedYear} 年還沒有找到回憶，無法生成故事。請先去「更多」匯入該年份的回憶！`);
         setLoading(false);
         return;
       }
 
       // Generate
       const names = `${coupleData.partner1Name} & ${coupleData.partner2Name}`;
-      const result = await generateYearlyStory(names, currentYear, count);
+      const result = await generateYearlyStory(names, selectedYear.toString(), memories);
       
       // Save
-      await setDoc(doc(db, `couples/${coupleId}/aiSummaries`, `yearly_${currentYear}`), {
+      await setDoc(doc(db, `couples/${coupleId}/aiSummaries`, `yearly_${selectedYear}`), {
         content: result,
         generatedAt: new Date().toISOString()
       });
-      // State updates via onSnapshot
 
     } catch (e) {
       console.error(e);
-      setStory("生成失敗，請稍後再試。");
+      setStory("生成失敗，請檢查 API Key 是否正確。");
     } finally {
       setLoading(false);
     }
+  };
+
+  const changeYear = (offset: number) => {
+    setSelectedYear(prev => prev + offset);
   };
 
   return (
@@ -83,7 +97,18 @@ const AIYearlyStory: React.FC = () => {
         <div className="w-16 h-16 bg-[#D9B26D]/10 rounded-full flex items-center justify-center mb-4">
           <Book className="text-[#D9B26D]" size={32} />
         </div>
-        <h2 className="text-2xl font-serif text-[#3A3A3A] mb-1">{currentYear} 年度故事</h2>
+        
+        {/* Year Selector */}
+        <div className="flex items-center gap-4 mb-2">
+            <button onClick={() => changeYear(-1)} className="p-2 bg-white rounded-full shadow-sm text-[#C1C1C1] hover:text-[#D9B26D]">
+                <ChevronLeft size={20} />
+            </button>
+            <h2 className="text-2xl font-serif text-[#3A3A3A] font-bold">{selectedYear} 年度故事</h2>
+            <button onClick={() => changeYear(1)} disabled={selectedYear >= new Date().getFullYear()} className="p-2 bg-white rounded-full shadow-sm text-[#C1C1C1] hover:text-[#D9B26D] disabled:opacity-30">
+                <ChevronRight size={20} />
+            </button>
+        </div>
+
         <p className="text-[#8A8A8A] text-sm mb-8">獻給你們的一年總結</p>
 
         {!story ? (
@@ -92,7 +117,7 @@ const AIYearlyStory: React.FC = () => {
             disabled={loading}
             className="bg-[#D9B26D] text-white px-8 py-3 rounded-full font-medium shadow-lg soft-shadow active:scale-95 transition-transform flex items-center gap-2"
           >
-            {loading ? '撰寫中...' : (
+            {loading ? 'AI 回顧中...' : (
               <>
                 <Sparkles size={20} />
                 <span>生成年度故事</span>
@@ -107,6 +132,16 @@ const AIYearlyStory: React.FC = () => {
             <p className="text-[#3A3A3A] leading-8 text-justify font-serif whitespace-pre-line mt-2">
               {story}
             </p>
+            <div className="mt-6 pt-4 border-t border-[#F7F3ED] text-center flex justify-between items-center">
+              <span className="text-[10px] text-[#C1C1C1] uppercase tracking-widest">Our Bliss</span>
+              <button 
+                onClick={handleGenerate}
+                disabled={loading}
+                className="text-xs text-[#D9B26D] font-bold"
+              >
+                {loading ? '...' : '重新生成'}
+              </button>
+            </div>
           </div>
         )}
       </div>

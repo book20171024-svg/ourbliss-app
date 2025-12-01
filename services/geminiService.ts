@@ -2,15 +2,17 @@
 import { GoogleGenAI } from "@google/genai";
 import { Memory } from "../types";
 
-// Ensure API Key is available
-const apiKey = process.env.API_KEY || ''; 
-const ai = new GoogleGenAI({ apiKey });
+// ⚠️⚠️⚠️ 請在這裡填入您的 Google Gemini API Key ⚠️⚠️⚠️
+// 您可以從 https://aistudio.google.com/ 申請免費 Key
+const API_KEY = "請在此填入您的API_KEY"; 
+
+const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 /**
  * Generates a warm, romantic summary of a memory.
  */
 export const generateMemorySummary = async (memory: Memory): Promise<string> => {
-  if (!apiKey) return "請設定 API Key 以使用 AI 功能。";
+  if (!API_KEY || API_KEY.includes("請在此填入")) return "請在 services/geminiService.ts 設定 API Key 以使用 AI 功能。";
 
   try {
     const prompt = `
@@ -38,7 +40,7 @@ export const generateMemorySummary = async (memory: Memory): Promise<string> => 
  * Generates a creative story based on the couple's time together.
  */
 export const generateCoupleStory = async (names: string, days: number): Promise<string> => {
-  if (!apiKey) return "請設定 API Key 以使用 AI 功能。";
+  if (!API_KEY || API_KEY.includes("請在此填入")) return "請設定 API Key。";
 
   try {
     const prompt = `
@@ -65,7 +67,7 @@ export const generateCoupleStory = async (names: string, days: number): Promise<
  * Generates a short daily warm message.
  */
 export const generateDailyMessage = async (names: string, days: number): Promise<string> => {
-  if (!apiKey) return "願你們今天也像彼此依靠的肩膀一樣溫暖。";
+  if (!API_KEY || API_KEY.includes("請在此填入")) return "願你們今天也像彼此依靠的肩膀一樣溫暖。(請設定 API Key)";
 
   try {
     const today = new Date();
@@ -92,7 +94,7 @@ export const generateDailyMessage = async (names: string, days: number): Promise
  * Generates a monthly summary story.
  */
 export const generateMonthlyStory = async (names: string, monthStr: string, memories: Memory[]): Promise<string> => {
-  if (!apiKey) return "請設定 API Key。";
+  if (!API_KEY || API_KEY.includes("請在此填入")) return "請在程式碼 services/geminiService.ts 中設定 API Key。";
   
   const memoryText = memories.map(m => `- ${m.date} ${m.title}: ${m.description}`).join('\n');
 
@@ -103,6 +105,7 @@ export const generateMonthlyStory = async (names: string, monthStr: string, memo
       ${memoryText}
       
       請將這些片段串成一個溫馨的故事，強調兩人的連結與成長。
+      若回憶較少，請發揮創意補足溫馨的氛圍。
       繁體中文，200-300字。
     `;
 
@@ -113,21 +116,27 @@ export const generateMonthlyStory = async (names: string, monthStr: string, memo
 
     return response.text || "無法生成故事。";
   } catch (error) {
-    return "AI 暫時無法生成。";
+    return "AI 暫時無法生成，請檢查 API Key 或網路。";
   }
 };
 
 /**
  * Generates a yearly summary story.
  */
-export const generateYearlyStory = async (names: string, year: string, memoryCount: number): Promise<string> => {
-  if (!apiKey) return "請設定 API Key。";
+export const generateYearlyStory = async (names: string, year: string, memories: Memory[]): Promise<string> => {
+  if (!API_KEY || API_KEY.includes("請在此填入")) return "請在程式碼 services/geminiService.ts 中設定 API Key。";
+
+  // Summarize memories for context (limit length to avoid token limits)
+  const memoryText = memories.slice(0, 50).map(m => `- ${m.date} ${m.title}`).join('\n');
 
   try {
     const prompt = `
       請為 ${names} 寫一段關於 ${year} 年的年度總結故事。
-      這一年他們共同創造了 ${memoryCount} 個美好回憶。
-      請寫一段感謝彼此陪伴、展望未來的感人信件風格文章。
+      這一年他們共同創造了 ${memories.length} 個美好回憶。
+      部分回憶標題如下：
+      ${memoryText}
+
+      請寫一段感謝彼此陪伴、回顧重點時刻、並展望未來的感人信件風格文章。
       繁體中文，400字左右。
     `;
 
@@ -138,7 +147,7 @@ export const generateYearlyStory = async (names: string, year: string, memoryCou
 
     return response.text || "無法生成故事。";
   } catch (error) {
-    return "AI 暫時無法生成。";
+    return "AI 暫時無法生成，請檢查 API Key 或網路。";
   }
 };
 
@@ -146,7 +155,7 @@ export const generateYearlyStory = async (names: string, year: string, memoryCou
  * Generates a congratulation card text for goal completion.
  */
 export const generateGoalCompletionCard = async (goalTitle: string, names: string): Promise<string> => {
-  if (!apiKey) return "恭喜你們完成了這個目標！太棒了！";
+  if (!API_KEY || API_KEY.includes("請在此填入")) return "恭喜你們完成了這個目標！太棒了！(請設定 API Key)";
 
   try {
     const prompt = `
