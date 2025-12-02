@@ -50,8 +50,12 @@ const CalendarPage: React.FC = () => {
   };
 
   const changeMonth = (offset: number) => {
-    const newDate = new Date(currentDate.setMonth(currentDate.getMonth() + offset));
-    setCurrentDate(new Date(newDate));
+    // FIX: Set date to 1st before changing month to avoid overflow (e.g. Jan 31 -> Feb 28/Mar 3)
+    const newDate = new Date(currentDate);
+    newDate.setDate(1); 
+    newDate.setMonth(newDate.getMonth() + offset);
+    
+    setCurrentDate(newDate);
     setSelectedDate(`${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-01`);
   };
 
@@ -117,7 +121,7 @@ const CalendarPage: React.FC = () => {
                   {day}
                 </span>
                 
-                {/* Dots/Bars - Max 3 dots */}
+                {/* Dots/Bars - Max 3 dots to prevent overflow */}
                 <div className="flex gap-[2px] mt-0.5">
                   {dayEvents.slice(0, 3).map((e, i) => (
                     <div 

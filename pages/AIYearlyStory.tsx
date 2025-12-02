@@ -4,7 +4,7 @@ import { useCouple } from '../context/CoupleContext';
 import { db } from '../services/firebaseConfig';
 import { collection, doc, setDoc, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { generateYearlyStory } from '../services/geminiService';
-import { Sparkles, ArrowLeft, Book, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowLeft, Book, ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Memory } from '../types';
 
@@ -60,7 +60,7 @@ const AIYearlyStory: React.FC = () => {
       const count = memories.length;
 
       if (count === 0) {
-        setStory(`${selectedYear} 年還沒有找到回憶，無法生成故事。請先去「更多」匯入該年份的回憶！`);
+        setStory(`EMPTY_STATE`); // Special flag for UI
         setLoading(false);
         return;
       }
@@ -132,6 +132,19 @@ const AIYearlyStory: React.FC = () => {
               )}
             </button>
           </div>
+        ) : story === 'EMPTY_STATE' ? (
+           <div className="flex flex-col items-center justify-center mt-8 text-center animate-fade-in">
+              <p className="text-[#3A3A3A] font-bold mb-2">{selectedYear} 年還沒有回憶 😢</p>
+              <p className="text-xs text-[#8A8A8A] mb-6 max-w-[240px]">
+                 AI 需要這一年的回憶才能寫出故事。您可以去「更多」使用快速匯入功能！
+              </p>
+              <button 
+                onClick={() => navigate('/more')}
+                className="bg-white border border-[#D9B26D] text-[#D9B26D] px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95"
+              >
+                <PlusCircle size={16} /> 去匯入回憶
+              </button>
+           </div>
         ) : (
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EAEAEA] w-full animate-fade-in relative mt-4 mb-10">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#3A3A3A] text-white text-[10px] px-3 py-1 rounded-full uppercase tracking-widest">
