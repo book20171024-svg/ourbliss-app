@@ -2,18 +2,14 @@
 import { GoogleGenAI } from "@google/genai";
 import { Memory } from "../types";
 
-// ⚠️⚠️⚠️ 請在這裡填入您的 Google Gemini API Key ⚠️⚠️⚠️
-// 您可以從 https://aistudio.google.com/ 申請免費 Key
-const API_KEY = "請在此填入您的API_KEY"; 
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// ⚠️ IMPORTANT: In Vercel Environment Variables, please set the key name to 'API_KEY'
+// ⚠️ 重要：請在 Vercel 的 Environment Variables 中，將變數名稱設為 'API_KEY'
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Generates a warm, romantic summary of a memory.
  */
 export const generateMemorySummary = async (memory: Memory): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "請在 services/geminiService.ts 設定 API Key 以使用 AI 功能。";
-
   try {
     const prompt = `
       我們是一對情侶。請幫我為這段回憶寫一個溫暖、簡短且充滿感情的摘要（繁體中文，50字以內）：
@@ -40,8 +36,6 @@ export const generateMemorySummary = async (memory: Memory): Promise<string> => 
  * Generates a creative story based on the couple's time together.
  */
 export const generateCoupleStory = async (names: string, days: number): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "請設定 API Key。";
-
   try {
     const prompt = `
       寫一個關於 ${names} 的浪漫微小說。
@@ -67,8 +61,6 @@ export const generateCoupleStory = async (names: string, days: number): Promise<
  * Generates a short daily warm message.
  */
 export const generateDailyMessage = async (names: string, days: number): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "願你們今天也像彼此依靠的肩膀一樣溫暖。(請設定 API Key)";
-
   try {
     const today = new Date();
     const prompt = `
@@ -94,8 +86,6 @@ export const generateDailyMessage = async (names: string, days: number): Promise
  * Generates a monthly summary story.
  */
 export const generateMonthlyStory = async (names: string, monthStr: string, memories: Memory[]): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "請在程式碼 services/geminiService.ts 中設定 API Key。";
-  
   const memoryText = memories.map(m => `- ${m.date} ${m.title}: ${m.description}`).join('\n');
 
   try {
@@ -124,8 +114,6 @@ export const generateMonthlyStory = async (names: string, monthStr: string, memo
  * Generates a yearly summary story.
  */
 export const generateYearlyStory = async (names: string, year: string, memories: Memory[]): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "請在程式碼 services/geminiService.ts 中設定 API Key。";
-
   // Summarize memories for context (limit length to avoid token limits)
   const memoryText = memories.slice(0, 50).map(m => `- ${m.date} ${m.title}`).join('\n');
 
@@ -155,8 +143,6 @@ export const generateYearlyStory = async (names: string, year: string, memories:
  * Generates a congratulation card text for goal completion.
  */
 export const generateGoalCompletionCard = async (goalTitle: string, names: string): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "恭喜你們完成了這個目標！太棒了！(請設定 API Key)";
-
   try {
     const prompt = `
       情侶 ${names} 剛剛完成了一個共同目標：「${goalTitle}」。

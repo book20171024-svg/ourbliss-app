@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { db } from '../services/firebaseConfig';
@@ -20,7 +21,6 @@ const AIMonthlyStory: React.FC = () => {
     if (!coupleId) return;
     const ref = doc(db, `couples/${coupleId}/aiSummaries`, `monthly_${selectedMonth}`);
     
-    // Listen to changes for the SELECTED month
     const unsubscribe = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
         setStory(snap.data().content);
@@ -45,9 +45,7 @@ const AIMonthlyStory: React.FC = () => {
     setLoading(true);
 
     try {
-      // 1. Fetch memories from the SELECTED month
       const start = selectedMonth + "-01";
-      // Calculate last day of selected month
       const [y, m] = selectedMonth.split('-').map(Number);
       const lastDay = new Date(y, m, 0).getDate();
       const end = selectedMonth + `-${lastDay}`;
@@ -67,11 +65,9 @@ const AIMonthlyStory: React.FC = () => {
         return;
       }
 
-      // 2. Generate
       const names = `${coupleData.partner1Name} & ${coupleData.partner2Name}`;
       const result = await generateMonthlyStory(names, selectedMonth, memories);
       
-      // 3. Save
       await setDoc(doc(db, `couples/${coupleId}/aiSummaries`, `monthly_${selectedMonth}`), {
         content: result,
         generatedAt: new Date().toISOString()
@@ -86,43 +82,50 @@ const AIMonthlyStory: React.FC = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-6 flex flex-col bg-[#F7F3ED] pb-24">
-      <button onClick={() => navigate(-1)} className="self-start text-[#C1C1C1] mb-6">
-        <ArrowLeft size={24} />
-      </button>
+    <div className="h-full flex flex-col bg-[#F7F3ED] overflow-hidden">
+      {/* Fixed Header */}
+      <div className="p-6 pb-2 flex-shrink-0 z-10 bg-[#F7F3ED]">
+        <button onClick={() => navigate(-1)} className="self-start text-[#C1C1C1] mb-6 p-2 -ml-2 hover:bg-black/5 rounded-full transition-colors">
+          <ArrowLeft size={24} />
+        </button>
 
-      <div className="flex flex-col items-center text-center">
-        <div className="w-16 h-16 bg-[#D9B26D]/10 rounded-full flex items-center justify-center mb-4">
-          <Calendar className="text-[#D9B26D]" size={32} />
+        <div className="flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-[#D9B26D]/10 rounded-full flex items-center justify-center mb-4 shadow-inner">
+            <Calendar className="text-[#D9B26D]" size={32} />
+          </div>
+          
+          <div className="mb-4">
+             <input 
+               type="month" 
+               value={selectedMonth}
+               onChange={(e) => setSelectedMonth(e.target.value)}
+               className="bg-white border border-[#EAEAEA] px-4 py-2 rounded-xl text-[#3A3A3A] font-serif font-bold outline-none focus:border-[#D9B26D] shadow-sm"
+             />
+          </div>
+
+          <p className="text-[#8A8A8A] text-sm">專屬你們的每月時光膠囊</p>
         </div>
-        
-        {/* Month Picker */}
-        <div className="mb-4">
-           <input 
-             type="month" 
-             value={selectedMonth}
-             onChange={(e) => setSelectedMonth(e.target.value)}
-             className="bg-white border border-[#EAEAEA] px-4 py-2 rounded-xl text-[#3A3A3A] font-serif font-bold outline-none focus:border-[#D9B26D]"
-           />
-        </div>
+      </div>
 
-        <p className="text-[#8A8A8A] text-sm mb-8">專屬你們的每月時光膠囊</p>
-
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto px-6 pb-32 w-full">
         {!story ? (
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="bg-[#D9B26D] text-white px-8 py-3 rounded-full font-medium shadow-lg soft-shadow active:scale-95 transition-transform flex items-center gap-2"
-          >
-            {loading ? 'AI 閱讀回憶中...' : (
-              <>
-                <Sparkles size={20} />
-                <span>生成本月故事</span>
-              </>
-            )}
-          </button>
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="bg-[#D9B26D] text-white px-8 py-3 rounded-full font-medium shadow-lg soft-shadow active:scale-95 transition-transform flex items-center gap-2"
+            >
+              {loading ? 'AI 閱讀回憶中...' : (
+                <>
+                  <Sparkles size={20} />
+                  <span>生成本月故事</span>
+                </>
+              )}
+            </button>
+          </div>
         ) : (
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EAEAEA] w-full animate-fade-in relative">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EAEAEA] w-full animate-fade-in relative mt-4 mb-10">
             <p className="text-[#3A3A3A] leading-8 text-justify font-serif whitespace-pre-line">
               {story}
             </p>
@@ -131,7 +134,7 @@ const AIMonthlyStory: React.FC = () => {
               <button 
                 onClick={handleGenerate}
                 disabled={loading}
-                className="text-xs text-[#D9B26D] font-bold"
+                className="text-xs text-[#D9B26D] font-bold px-3 py-1 bg-[#F9F9F9] rounded-lg hover:bg-[#FFF8E8]"
               >
                 {loading ? '...' : '重新生成'}
               </button>

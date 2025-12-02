@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Heart, Calendar, MoreHorizontal, CheckSquare } from 'lucide-react';
@@ -29,7 +30,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="h-[100dvh] w-full bg-[#F7F3ED] flex flex-col max-w-md mx-auto relative shadow-2xl overflow-hidden font-sans text-[#3A3A3A] pt-safe-top">
       {/* Main Content Area - Scrollable internally */}
-      <main className="flex-1 overflow-hidden relative w-full h-full">
+      {/* Increased pb to prevent bottom cut-off on rounded screens */}
+      <main className="flex-1 overflow-hidden relative w-full h-full pb-safe-plus">
         {children}
       </main>
 

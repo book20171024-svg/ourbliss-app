@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { MessageCircle, LogOut, Save, Gift, BookHeart, ChevronRight, Sparkles, User, Settings, Copy, Check, Download, Lock, ShieldCheck, Loader2, FileText, Upload, RefreshCw, ArrowUp, ArrowDown } from 'lucide-react';
@@ -78,14 +79,13 @@ const More: React.FC = () => {
     }
   };
 
-  // --- Backup Logic ---
+  // --- Backup Logic (Export) ---
   const handleBackup = async () => {
     if (!coupleId) return;
-    if (!confirm("確定要匯出全資料備份嗎？這可能需要一點時間。")) return;
+    if (!confirm("確定要匯出全資料備份嗎？\n(此操作不會刪除任何資料，僅下載備份檔)")) return;
 
     setIsBackingUp(true);
     try {
-      alert("⏳ 正在打包所有回憶與資料，請稍候...");
       const backupData: any = {
         meta: {
           exportDate: new Date().toISOString(),
@@ -111,7 +111,8 @@ const More: React.FC = () => {
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
       
-      alert("✅ 下載已開始！請妥善保存您的備份檔案。");
+      // Removed alert to prevent interruption flow on mobile
+      // alert("✅ 下載已開始！請妥善保存您的備份檔案。您的原始資料依然安全保存在雲端。");
     } catch (e) {
       console.error(e);
       alert("備份失敗，請稍後再試。");
@@ -120,7 +121,7 @@ const More: React.FC = () => {
     }
   };
 
-  // --- Restore Logic ---
+  // --- Restore Logic (Import) ---
   const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !coupleId) return;
@@ -167,7 +168,7 @@ const More: React.FC = () => {
         
         if (opCount > 0) await batch.commit();
         
-        alert("✅ 資料還原成功！請重新整理頁面。");
+        alert("✅ 資料還原成功！正在重新載入...");
         window.location.reload();
 
       } catch (err) {

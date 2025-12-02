@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { db } from '../services/firebaseConfig';
@@ -87,56 +88,64 @@ const AIYearlyStory: React.FC = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-6 flex flex-col bg-[#F7F3ED] pb-24">
-      <button onClick={() => navigate(-1)} className="self-start text-[#C1C1C1] mb-6">
-        <ArrowLeft size={24} />
-      </button>
+    <div className="h-full flex flex-col bg-[#F7F3ED] overflow-hidden">
+      {/* Fixed Header */}
+      <div className="p-6 pb-2 flex-shrink-0 z-10 bg-[#F7F3ED]">
+        <button onClick={() => navigate(-1)} className="self-start text-[#C1C1C1] mb-6 p-2 -ml-2 hover:bg-black/5 rounded-full transition-colors">
+          <ArrowLeft size={24} />
+        </button>
 
-      <div className="flex flex-col items-center text-center">
-        <div className="w-16 h-16 bg-[#D9B26D]/10 rounded-full flex items-center justify-center mb-4">
-          <Book className="text-[#D9B26D]" size={32} />
+        <div className="flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-[#D9B26D]/10 rounded-full flex items-center justify-center mb-4 shadow-inner">
+            <Book className="text-[#D9B26D]" size={32} />
+          </div>
+          
+          {/* Year Selector */}
+          <div className="flex items-center gap-4 mb-2">
+              <button onClick={() => changeYear(-1)} className="p-2 bg-white rounded-full shadow-sm text-[#C1C1C1] hover:text-[#D9B26D] active:scale-95 transition-transform">
+                  <ChevronLeft size={20} />
+              </button>
+              <h2 className="text-2xl font-serif text-[#3A3A3A] font-bold tracking-wide">{selectedYear} 年度故事</h2>
+              <button onClick={() => changeYear(1)} disabled={selectedYear >= new Date().getFullYear()} className="p-2 bg-white rounded-full shadow-sm text-[#C1C1C1] hover:text-[#D9B26D] disabled:opacity-30 active:scale-95 transition-transform">
+                  <ChevronRight size={20} />
+              </button>
+          </div>
+
+          <p className="text-[#8A8A8A] text-sm">獻給你們的一年總結</p>
         </div>
-        
-        {/* Year Selector */}
-        <div className="flex items-center gap-4 mb-2">
-            <button onClick={() => changeYear(-1)} className="p-2 bg-white rounded-full shadow-sm text-[#C1C1C1] hover:text-[#D9B26D]">
-                <ChevronLeft size={20} />
-            </button>
-            <h2 className="text-2xl font-serif text-[#3A3A3A] font-bold">{selectedYear} 年度故事</h2>
-            <button onClick={() => changeYear(1)} disabled={selectedYear >= new Date().getFullYear()} className="p-2 bg-white rounded-full shadow-sm text-[#C1C1C1] hover:text-[#D9B26D] disabled:opacity-30">
-                <ChevronRight size={20} />
-            </button>
-        </div>
+      </div>
 
-        <p className="text-[#8A8A8A] text-sm mb-8">獻給你們的一年總結</p>
-
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto px-6 pb-32 w-full">
         {!story ? (
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="bg-[#D9B26D] text-white px-8 py-3 rounded-full font-medium shadow-lg soft-shadow active:scale-95 transition-transform flex items-center gap-2"
-          >
-            {loading ? 'AI 回顧中...' : (
-              <>
-                <Sparkles size={20} />
-                <span>生成年度故事</span>
-              </>
-            )}
-          </button>
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="bg-[#D9B26D] text-white px-8 py-3 rounded-full font-medium shadow-lg soft-shadow active:scale-95 transition-transform flex items-center gap-2"
+            >
+              {loading ? 'AI 回顧中...' : (
+                <>
+                  <Sparkles size={20} />
+                  <span>生成年度故事</span>
+                </>
+              )}
+            </button>
+          </div>
         ) : (
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EAEAEA] w-full animate-fade-in relative">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EAEAEA] w-full animate-fade-in relative mt-4 mb-10">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#3A3A3A] text-white text-[10px] px-3 py-1 rounded-full uppercase tracking-widest">
               Yearly Report
             </div>
-            <p className="text-[#3A3A3A] leading-8 text-justify font-serif whitespace-pre-line mt-2">
+            <p className="text-[#3A3A3A] leading-8 text-justify font-serif whitespace-pre-line mt-4">
               {story}
             </p>
-            <div className="mt-6 pt-4 border-t border-[#F7F3ED] text-center flex justify-between items-center">
+            <div className="mt-8 pt-6 border-t border-[#F7F3ED] text-center flex justify-between items-center">
               <span className="text-[10px] text-[#C1C1C1] uppercase tracking-widest">Our Bliss</span>
               <button 
                 onClick={handleGenerate}
                 disabled={loading}
-                className="text-xs text-[#D9B26D] font-bold"
+                className="text-xs text-[#D9B26D] font-bold px-3 py-1 bg-[#F9F9F9] rounded-lg hover:bg-[#FFF8E8]"
               >
                 {loading ? '...' : '重新生成'}
               </button>
