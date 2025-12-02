@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { db } from '../services/firebaseConfig';
@@ -87,7 +86,7 @@ const AIMonthlyStory: React.FC = () => {
   };
 
   return (
-    <div className="min-h-full p-6 flex flex-col bg-[#F7F3ED]">
+    <div className="h-full overflow-y-auto p-6 flex flex-col bg-[#F7F3ED] pb-24">
       <button onClick={() => navigate(-1)} className="self-start text-[#C1C1C1] mb-6">
         <ArrowLeft size={24} />
       </button>

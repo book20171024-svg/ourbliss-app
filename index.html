@@ -11,6 +11,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Our Bliss" />
+    
+    <!-- ⚠️【請更換圖示】請將 href 換成您的正方形圖片網址 (建議 PNG) -->
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2530/2530863.png" />
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,10 +48,19 @@
         scrollbar-width: none;
       }
       /* Utility class for iPhone Safe Area Bottom */
-      /* Use !important to ensure it overrides default tailwind padding */
       .safe-area-bottom {
         padding-bottom: calc(1rem + var(--sab)) !important;
       }
+      /* Utility class for iPhone Safe Area Top (Status Bar) */
+      .pt-safe-top {
+        padding-top: calc(12px + var(--sat)) !important;
+      }
+      
+      /* Prevent iOS input zoom */
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+
       /* Soft Gold Gradient Text */
       .text-gold-gradient {
         background: linear-gradient(135deg, #D9B26D 0%, #E8C88B 100%);

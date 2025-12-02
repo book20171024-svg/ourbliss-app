@@ -117,7 +117,7 @@ const CalendarPage: React.FC = () => {
                   {day}
                 </span>
                 
-                {/* Dots/Bars */}
+                {/* Dots/Bars - Max 3 dots */}
                 <div className="flex gap-[2px] mt-0.5">
                   {dayEvents.slice(0, 3).map((e, i) => (
                     <div 
@@ -139,8 +139,9 @@ const CalendarPage: React.FC = () => {
             <span className="text-[10px] text-[#8A8A8A] uppercase tracking-wider">
               {selectedDayObj.toLocaleDateString('zh-TW', { weekday: 'long' })}
             </span>
+            {/* Display Month First, then Date */}
             <span className="text-lg font-serif font-bold text-[#3A3A3A]">
-              {selectedDayObj.getDate()} {monthNames[selectedDayObj.getMonth()]}
+              {monthNames[selectedDayObj.getMonth()]} {selectedDayObj.getDate()}日
             </span>
         </div>
 

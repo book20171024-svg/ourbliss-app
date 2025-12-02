@@ -136,6 +136,7 @@ const Chat: React.FC = () => {
                        src={msg.imageUrl} 
                        alt="chat-img" 
                        className="max-w-full h-auto max-h-60 object-cover min-w-[100px] min-h-[100px]" 
+                       onLoad={scrollToBottom}
                     />
                   </div>
                 )}

@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { MessageCircle, LogOut, Save, Gift, BookHeart, ChevronRight, Sparkles, User, Settings, Copy, Check, Download, Lock, ShieldCheck, Loader2, FileText, Upload, RefreshCw, ArrowUp, ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, writeBatch, doc, setDoc, addDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
-import packageJson from '../../package.json'; // Ensure this exists or hardcode version
 
 const More: React.FC = () => {
   const { coupleData, currentUserRole, updateCoupleData, signOut, coupleId } = useCouple();
