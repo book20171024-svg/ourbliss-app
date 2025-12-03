@@ -19,7 +19,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { label: '更多', icon: MoreHorizontal, path: '/more' },
   ];
 
-  // Logic to hide bottom nav on specific full-screen pages
   const isFullScreenPage = 
     location.pathname === '/chat' || 
     location.pathname === '/event-add' || 
@@ -29,23 +28,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="h-[100dvh] w-full bg-[#F7F3ED] flex flex-col max-w-md mx-auto relative shadow-2xl overflow-hidden font-sans text-[#3A3A3A] pt-safe-top">
-      {/* Main Content Area - Scrollable internally */}
-      {/* Increased pb to prevent bottom cut-off on rounded screens */}
+      {/* Main Content Area */}
       <main className="flex-1 overflow-hidden relative w-full h-full pb-safe-plus">
         {children}
       </main>
 
-      {/* Persistent Bottom Navigation - Only show if NOT a full screen page */}
+      {/* Persistent Bottom Navigation - Lowered Position */}
       {!isFullScreenPage && (
-        <nav className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#EAEAEA] py-2 px-4 rounded-t-3xl shadow-[0_-5px_20px_rgba(0,0,0,0.02)] z-[90] safe-area-bottom">
-          <ul className="flex justify-between items-end">
+        <nav className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#EAEAEA] rounded-t-[32px] shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-[90] safe-area-bottom pb-1">
+          <ul className="flex justify-between items-end px-4 pt-2">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               const Icon = item.icon;
               
               if (item.isCenter) {
                 return (
-                  <li key={item.path} className="relative -top-5">
+                  <li key={item.path} className="relative -top-6">
                     <button
                       onClick={() => navigate(item.path)}
                       className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${
@@ -62,7 +60,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li key={item.path}>
                   <button
                     onClick={() => navigate(item.path)}
-                    className={`flex flex-col items-center space-y-1 transition-all duration-300 w-14 ${
+                    className={`flex flex-col items-center space-y-1 transition-all duration-300 w-14 pb-2 ${
                       isActive ? 'text-[#D9B26D]' : 'text-[#C1C1C1] hover:text-[#D9B26D]/70'
                     }`}
                   >

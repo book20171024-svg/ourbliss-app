@@ -34,7 +34,6 @@ const Home: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   
-  // Local loading state for async data
   const [isContentReady, setIsContentReady] = useState(false);
 
   // Calculate days passed
@@ -67,7 +66,6 @@ const Home: React.FC = () => {
     }, (error) => console.log("Event sync error", error));
 
     // 2. Fetch Memories (On This Day Logic)
-    // Integrity Update: Increased limit to 365 to ensure we find older memories from a year ago
     const memRef = collection(db, `couples/${coupleId}/memories`);
     const qMem = query(memRef, orderBy('date', 'desc'), limit(365)); 
     
@@ -130,7 +128,7 @@ const Home: React.FC = () => {
     const file = e.target.files?.[0];
     if (file && currentUserRole && coupleData) {
       try {
-        const compressedFile = await compressImage(file, 500, 0.8); // Compress avatar
+        const compressedFile = await compressImage(file, 500, 0.8);
         const storageRef = ref(storage, `avatars/${coupleData.id}/${currentUserRole}_${Date.now()}`);
         await uploadBytes(storageRef, compressedFile);
         const url = await getDownloadURL(storageRef);
@@ -146,7 +144,7 @@ const Home: React.FC = () => {
     const file = e.target.files?.[0];
     if (file && coupleId) {
       try {
-        const compressedFile = await compressImage(file, 1280, 0.8); // Compress cover
+        const compressedFile = await compressImage(file, 1280, 0.8);
         const storageRef = ref(storage, `covers/${coupleId}_${Date.now()}`);
         await uploadBytes(storageRef, compressedFile);
         const url = await getDownloadURL(storageRef);
@@ -171,8 +169,8 @@ const Home: React.FC = () => {
         <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" accept="image/*" />
         <input type="file" ref={coverInputRef} onChange={handleCoverUpload} className="hidden" accept="image/*" />
 
-        {/* Top Cover Section */}
-        <div className="relative w-full h-[280px] rounded-b-[40px] overflow-hidden shadow-lg border-b-4 border-white shrink-0 bg-[#EAEAEA]">
+        {/* Top Cover Section - REDUCED HEIGHT */}
+        <div className="relative w-full h-[220px] rounded-b-[40px] overflow-hidden shadow-lg border-b-4 border-white shrink-0 bg-[#EAEAEA]">
            <LazyImage 
              src={coupleData.coverImage || "https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?q=80&w=1000&auto=format&fit=crop"} 
              className="w-full h-full object-cover"
@@ -185,7 +183,7 @@ const Home: React.FC = () => {
            </button>
 
            {/* Avatar & Status Section */}
-           <div className="absolute bottom-10 left-0 right-0 flex justify-center items-end gap-6 z-10">
+           <div className="absolute bottom-8 left-0 right-0 flex justify-center items-end gap-6 z-10">
               {/* Partner 1 */}
               <div className="flex flex-col items-center relative">
                  {coupleData.partner1Status && (
@@ -195,25 +193,25 @@ const Home: React.FC = () => {
                  )}
                  <div 
                    onClick={() => currentUserRole === 'partner1' && fileInputRef.current?.click()} 
-                   className="relative w-20 h-20 rounded-full border-4 border-white shadow-xl cursor-pointer bg-gray-200 overflow-hidden"
+                   className="relative w-16 h-16 rounded-full border-4 border-white shadow-xl cursor-pointer bg-gray-200 overflow-hidden"
                  >
                    <LazyImage src={coupleData.partner1Avatar || "https://picsum.photos/200"} className="w-full h-full rounded-full object-cover" alt="p1"/>
                    {currentUserRole === 'partner1' && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowStatusMenu(true); }}
-                        className="absolute bottom-0 right-0 bg-[#D9B26D] text-white w-6 h-6 rounded-full flex items-center justify-center border-2 border-white"
+                        className="absolute bottom-0 right-0 bg-[#D9B26D] text-white w-5 h-5 rounded-full flex items-center justify-center border border-white"
                       >
-                        <Smile size={12} />
+                        <Smile size={10} />
                       </button>
                    )}
                  </div>
-                 <span className="text-white font-bold text-shadow mt-2 text-sm drop-shadow-md">{coupleData.partner1Name}</span>
+                 <span className="text-white font-bold text-shadow mt-2 text-xs drop-shadow-md">{coupleData.partner1Name}</span>
               </div>
               
               {/* Days Heart */}
-              <div className="flex flex-col items-center pb-6">
-                <Heart size={32} fill="#D9B26D" className="text-[#D9B26D] animate-pulse drop-shadow-md" />
-                <span className="text-white font-bold text-lg drop-shadow-md">{daysPassed} DAYS</span>
+              <div className="flex flex-col items-center pb-4">
+                <Heart size={28} fill="#D9B26D" className="text-[#D9B26D] animate-pulse drop-shadow-md" />
+                <span className="text-white font-bold text-base drop-shadow-md">{daysPassed} DAYS</span>
               </div>
 
               {/* Partner 2 */}
@@ -225,26 +223,26 @@ const Home: React.FC = () => {
                  )}
                  <div 
                    onClick={() => currentUserRole === 'partner2' && fileInputRef.current?.click()} 
-                   className="relative w-20 h-20 rounded-full border-4 border-white shadow-xl cursor-pointer bg-gray-200 overflow-hidden"
+                   className="relative w-16 h-16 rounded-full border-4 border-white shadow-xl cursor-pointer bg-gray-200 overflow-hidden"
                  >
                    <LazyImage src={coupleData.partner2Avatar || "https://picsum.photos/201"} className="w-full h-full rounded-full object-cover" alt="p2"/>
                    {currentUserRole === 'partner2' && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowStatusMenu(true); }}
-                        className="absolute bottom-0 right-0 bg-[#D9B26D] text-white w-6 h-6 rounded-full flex items-center justify-center border-2 border-white"
+                        className="absolute bottom-0 right-0 bg-[#D9B26D] text-white w-5 h-5 rounded-full flex items-center justify-center border border-white"
                       >
-                        <Smile size={12} />
+                        <Smile size={10} />
                       </button>
                    )}
                  </div>
-                 <span className="text-white font-bold text-shadow mt-2 text-sm drop-shadow-md">{coupleData.partner2Name}</span>
+                 <span className="text-white font-bold text-shadow mt-2 text-xs drop-shadow-md">{coupleData.partner2Name}</span>
               </div>
            </div>
         </div>
 
         <div className="px-6 -mt-6 relative z-10">
-           {/* Daily Message */}
-           <div className="bg-white px-6 py-4 rounded-2xl shadow-md border border-[#F7F3ED] text-center mx-auto mb-6">
+           {/* Daily Message - COMPACT STYLE */}
+           <div className="bg-white px-5 py-3 rounded-2xl shadow-md border border-[#F7F3ED] text-center mx-auto mb-6">
              <div className="flex justify-center items-center gap-2 mb-1">
                <div className="bg-[#D9B26D]/10 text-[#D9B26D] text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 font-bold">
                  <Sparkles size={10} /> 每日小語
@@ -254,12 +252,12 @@ const Home: React.FC = () => {
                   disabled={isGenerating}
                   className="text-[#C1C1C1] hover:text-[#D9B26D]"
                >
-                  <RefreshCw size={12} className={isGenerating ? "animate-spin" : ""} />
+                  <RefreshCw size={10} className={isGenerating ? "animate-spin" : ""} />
                </button>
              </div>
              
              {dailyMessage ? (
-               <p className="text-sm text-[#3A3A3A] font-serif italic leading-relaxed animate-fade-in">
+               <p className="text-xs text-[#3A3A3A] font-serif italic leading-relaxed animate-fade-in">
                  {dailyMessage}
                </p>
              ) : (
@@ -273,7 +271,6 @@ const Home: React.FC = () => {
            {/* Main Content Card */}
            <div className="bg-white rounded-[32px] shadow-xl shadow-[#D9B26D]/10 overflow-hidden relative aspect-[4/5] w-full max-h-[400px] border border-white mx-auto">
             {!isContentReady ? (
-              // Skeleton Loading State
               <div className="w-full h-full p-8 flex flex-col justify-between bg-white animate-pulse">
                  <div>
                     <div className="w-24 h-6 bg-gray-100 rounded-full mb-4"></div>
@@ -339,7 +336,7 @@ const Home: React.FC = () => {
             )}
           </div>
 
-          {/* Action Buttons (Bottom Left Positioned) */}
+          {/* Action Buttons */}
           <div className="flex justify-center gap-8 mt-8 pb-4">
             <button 
               onClick={() => navigate('/anniversaries')}
@@ -360,7 +357,7 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-       {/* Status Picker - Bottom Sheet Style Overlay */}
+       {/* Status Picker */}
        {showStatusMenu && (
         <div className="fixed inset-0 z-[60]">
            <div className="absolute inset-0 bg-black/20" onClick={() => setShowStatusMenu(false)} />

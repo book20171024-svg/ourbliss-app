@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCouple } from '../context/CoupleContext';
 import { db } from '../services/firebaseConfig';
-import { doc, onSnapshot, updateDoc, addDoc, collection } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, addDoc, collection, deleteDoc } from 'firebase/firestore';
 import { Goal, SubTask } from '../types';
 import { ArrowLeft, CheckCircle, Circle, Plus, Trash2, PartyPopper } from 'lucide-react';
 import { generateGoalCompletionCard } from '../services/geminiService';
@@ -74,9 +74,15 @@ const GoalDetail: React.FC = () => {
 
   const deleteGoal = async () => {
     if (!confirm("確定刪除此目標？")) return;
-    // Implementation skipped for brevity, but would be deleteDoc
-    alert("目標已刪除");
-    navigate('/goals');
+    if (!coupleId || !id) return;
+    
+    try {
+        await deleteDoc(doc(db, `couples/${coupleId}/goals`, id));
+        navigate('/goals');
+    } catch (e) {
+        console.error("Delete error:", e);
+        alert("刪除失敗");
+    }
   };
 
   if (!goal) return <div className="p-6">載入中...</div>;
@@ -134,7 +140,9 @@ const GoalDetail: React.FC = () => {
         </form>
       </div>
 
-      <button onClick={deleteGoal} className="w-full text-center text-red-300 text-xs hover:text-red-500">刪除目標</button>
+      <button onClick={deleteGoal} className="w-full text-center text-red-300 text-xs hover:text-red-500 py-4 flex items-center justify-center gap-1">
+        <Trash2 size={14} /> 刪除目標
+      </button>
     </div>
   );
 };
