@@ -126,9 +126,24 @@ const AIMonthlyStory: React.FC = () => {
           </div>
         ) : (
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EAEAEA] w-full animate-fade-in relative mt-4 mb-10">
-            <p className="text-[#3A3A3A] leading-8 text-justify font-serif whitespace-pre-line">
-              {story}
-            </p>
+            {/* Structured Text Rendering */}
+            <div className="text-[#3A3A3A] leading-8 text-justify font-serif whitespace-pre-line">
+              {story.split('【').map((section, index) => {
+                if (index === 0) return section; // Text before first header
+                const parts = section.split('】');
+                const title = parts[0];
+                const content = parts.slice(1).join('】');
+                return (
+                  <div key={index} className="mb-6 last:mb-0">
+                    <h3 className="text-[#D9B26D] font-bold text-lg mb-2">【{title}】</h3>
+                    <p>{content.trim()}</p>
+                  </div>
+                );
+              })}
+              {/* Fallback if format doesn't match */}
+              {!story.includes('【') && story}
+            </div>
+
             <div className="mt-6 pt-4 border-t border-[#F7F3ED] text-center flex justify-between items-center">
               <span className="text-[10px] text-[#C1C1C1] uppercase tracking-widest">Our Bliss AI Memory</span>
               <button 

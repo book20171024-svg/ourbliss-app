@@ -2,18 +2,15 @@
 import { GoogleGenAI } from "@google/genai";
 import { Memory } from "../types";
 
-// Use process.env.API_KEY as per coding guidelines.
-// This also resolves the "Property 'env' does not exist on type 'ImportMeta'" error.
-const API_KEY = process.env.API_KEY;
-
-// Initialize the API client safely
-const ai = new GoogleGenAI({ apiKey: API_KEY || "dummy_key_to_prevent_crash" });
+// Always use process.env.API_KEY as per Google GenAI SDK guidelines.
+// This assumes the environment variable is properly configured and replaced during build.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Generates a warm, romantic summary of a memory.
  */
 export const generateMemorySummary = async (memory: Memory): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "請先設定環境變數 API_KEY";
+  if (!process.env.API_KEY) return "請檢查環境變數 API_KEY 是否設定正確。";
 
   try {
     const prompt = `
@@ -41,7 +38,7 @@ export const generateMemorySummary = async (memory: Memory): Promise<string> => 
  * Generates a creative story based on the couple's time together.
  */
 export const generateCoupleStory = async (names: string, days: number): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "請先設定 API Key 以解鎖 AI 故事功能。";
+  if (!process.env.API_KEY) return "請先設定 API_KEY 以解鎖 AI 故事功能。";
 
   try {
     const prompt = `
@@ -68,7 +65,7 @@ export const generateCoupleStory = async (names: string, days: number): Promise<
  * Generates a short daily warm message.
  */
 export const generateDailyMessage = async (names: string, days: number): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "願你們今天也像彼此依靠的肩膀一樣溫暖。(請設定 API Key)";
+  if (!process.env.API_KEY) return "願你們今天也像彼此依靠的肩膀一樣溫暖。";
 
   try {
     const today = new Date();
@@ -92,22 +89,32 @@ export const generateDailyMessage = async (names: string, days: number): Promise
 };
 
 /**
- * Generates a monthly summary story.
+ * Generates a monthly summary story (Structured).
  */
 export const generateMonthlyStory = async (names: string, monthStr: string, memories: Memory[]): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "請先設定 API Key 以生成月度回顧。";
+  if (!process.env.API_KEY) return "請先設定 API_KEY 以生成月度回顧。";
 
   const memoryText = memories.map(m => `- ${m.date} ${m.title}: ${m.description}`).join('\n');
 
   try {
     const prompt = `
-      請為 ${names} 寫一段關於 ${monthStr} 的月度回顧故事。
-      這是他們這個月發生的事：
+      請為 ${names} 寫一份關於 ${monthStr} 的「戀愛月報」。
+      這是他們這個月的回憶片段：
       ${memoryText}
       
-      請將這些片段串成一個溫馨的故事，強調兩人的連結與成長。
-      若回憶較少，請發揮創意補足溫馨的氛圍。
-      繁體中文，200-300字。
+      請嚴格遵守以下四個段落格式輸出（每段約 50-80 字，繁體中文，語氣溫柔幽默）：
+
+      【💌 暖心總結】
+      (用一句話總結這個月的氛圍)
+
+      【✨ 彼此的閃光點】
+      (稱讚他們這個月做得好的地方)
+
+      【🌱 我們可以更好】
+      (溫柔地提出一個小小的相處建議)
+
+      【💡 推薦一起做的事】
+      (根據下個月的季節或這個月的遺憾，推薦一個約會點子)
     `;
 
     const response = await ai.models.generateContent({
@@ -122,23 +129,34 @@ export const generateMonthlyStory = async (names: string, monthStr: string, memo
 };
 
 /**
- * Generates a yearly summary story.
+ * Generates a yearly summary story (Structured).
  */
 export const generateYearlyStory = async (names: string, year: string, memories: Memory[]): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "請先設定 API Key 以生成年度回顧。";
+  if (!process.env.API_KEY) return "請先設定 API_KEY 以生成年度回顧。";
 
   // Summarize memories for context (limit length to avoid token limits)
   const memoryText = memories.slice(0, 50).map(m => `- ${m.date} ${m.title}`).join('\n');
 
   try {
     const prompt = `
-      請為 ${names} 寫一段關於 ${year} 年的年度總結故事。
-      這一年他們共同創造了 ${memories.length} 個美好回憶。
-      部分回憶標題如下：
+      請為 ${names} 寫一份 ${year} 年的「年度戀愛報告」。
+      這一年他們共同創造了 ${memories.length} 個回憶。
+      回憶列表：
       ${memoryText}
 
-      請寫一段感謝彼此陪伴、回顧重點時刻、並展望未來的感人信件風格文章。
-      繁體中文，400字左右。
+      請嚴格遵守以下四個段落格式輸出（每段約 100 字，繁體中文，語氣感性且充滿希望）：
+
+      【💌 年度關鍵字】
+      (總結這一年的核心回憶與感情變化)
+
+      【🏆 年度最佳時刻】
+      (回顧最亮眼、最值得紀念的瞬間)
+
+      【🌱 給彼此的一句話】
+      (感謝對方的付出，並溫柔提出對未來的期許)
+
+      【✨ 明年的願望清單】
+      (推薦 1-2 個明年一定要一起完成的目標)
     `;
 
     const response = await ai.models.generateContent({
@@ -156,7 +174,7 @@ export const generateYearlyStory = async (names: string, year: string, memories:
  * Generates a congratulation card text for goal completion.
  */
 export const generateGoalCompletionCard = async (goalTitle: string, names: string): Promise<string> => {
-  if (!API_KEY || API_KEY.includes("請在此填入")) return "恭喜達成目標！(請設定 API Key)";
+  if (!process.env.API_KEY) return "恭喜達成目標！";
 
   try {
     const prompt = `
