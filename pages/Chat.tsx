@@ -6,12 +6,12 @@ import { collection, addDoc, query, orderBy, onSnapshot, limit } from 'firebase/
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Send, Image as ImageIcon, Loader2, ArrowLeft } from 'lucide-react';
 import { ChatMessage } from '../types';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { compressImage } from '../services/imageUtils'; // Import compression
 
 const Chat: React.FC = () => {
   const { coupleId, currentUserRole, coupleData } = useCouple();
-  const history = useHistory();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -101,8 +101,8 @@ const Chat: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-[#F7F3ED] w-full relative">
       {/* Header - Fixed - Soft Gold Theme */}
-      <header className="bg-white/90 backdrop-blur-md px-4 py-3 flex items-center gap-3 shadow-sm border-b border-[#EAEAEA] flex-shrink-0 z-20">
-        <button onClick={() => history.goBack()} className="p-2 -ml-2 rounded-full text-[#8A8A8A] hover:bg-[#F7F3ED]">
+      <header className="bg-white/90 backdrop-blur-md px-4 py-3 flex items-center gap-3 shadow-sm border-b border-[#EAEAEA] flex-shrink-0 z-20 pt-safe-top">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full text-[#8A8A8A] hover:bg-[#F7F3ED]">
            <ArrowLeft size={22} />
         </button>
         
@@ -124,7 +124,7 @@ const Chat: React.FC = () => {
       </header>
 
       {/* Messages - Scrollable Area - Beige Background */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F7F3ED]">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F7F3ED] pb-24">
         {messages.map((msg) => {
           const isMe = msg.senderId === currentUserRole;
           return (
@@ -163,4 +163,48 @@ const Chat: React.FC = () => {
         })}
         {isUploading && (
           <div className="flex justify-end animate-pulse">
-            <div className="bg-[#D9B26D
+            <div className="bg-[#D9B26D] text-white px-4 py-2 rounded-2xl rounded-tr-none text-xs">
+               發送圖片中...
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area - Fixed Bottom - Safe Area Aware */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white p-3 border-t border-[#EAEAEA] flex items-center gap-2 max-w-md mx-auto z-30 safe-area-bottom">
+        <button 
+           onClick={() => fileInputRef.current?.click()}
+           className="p-3 text-[#D9B26D] bg-[#FFF8E8] rounded-full hover:bg-[#D9B26D] hover:text-white transition-colors"
+        >
+          {isUploading ? <Loader2 size={20} className="animate-spin" /> : <ImageIcon size={20} />}
+        </button>
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          accept="image/*"
+          onChange={handleFileChange} 
+        />
+        
+        <form onSubmit={handleSend} className="flex-1 flex items-center gap-2">
+           <input 
+             value={newMessage}
+             onChange={(e) => setNewMessage(e.target.value)}
+             placeholder="輸入訊息..."
+             className="flex-1 bg-[#F7F3ED] rounded-full px-5 py-3 text-sm text-[#3A3A3A] outline-none placeholder-[#C1C1C1]"
+           />
+           <button 
+             type="submit" 
+             disabled={!newMessage.trim()} 
+             className="p-3 bg-[#D9B26D] text-white rounded-full shadow-md disabled:opacity-50 active:scale-95 transition-transform"
+           >
+             <Send size={18} />
+           </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Chat;

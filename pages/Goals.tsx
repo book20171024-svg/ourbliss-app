@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { db } from '../services/firebaseConfig';
-import { collection, onSnapshot, query, addDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Goal } from '../types';
-import { Plus, ArrowRight, Flag } from 'lucide-react';
+import { Plus, ArrowRight, Flag, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const categories = [
@@ -70,6 +70,16 @@ const Goals: React.FC = () => {
     }
   };
 
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if(!confirm("確定刪除此目標？")) return;
+    try {
+        await deleteDoc(doc(db, `couples/${coupleId}/goals`, id));
+    } catch(err) {
+        alert("刪除失敗");
+    }
+  }
+
   const getProgress = (goal: Goal) => {
     if (!goal.subTasks || goal.subTasks.length === 0) return 0;
     const completed = goal.subTasks.filter(t => t.isCompleted).length;
@@ -114,7 +124,7 @@ const Goals: React.FC = () => {
             <div 
               key={goal.id} 
               onClick={() => navigate(`/goals/${goal.id}`)}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-[#EAEAEA] flex items-center gap-4 active:scale-95 transition-transform cursor-pointer"
+              className="bg-white rounded-2xl p-4 shadow-sm border border-[#EAEAEA] flex items-center gap-4 active:scale-95 transition-transform cursor-pointer group relative"
             >
               <div className="w-12 h-12 bg-[#F7F3ED] rounded-full flex items-center justify-center text-2xl">
                 {catInfo.icon}
@@ -128,7 +138,14 @@ const Goals: React.FC = () => {
                   <div className="h-full bg-[#D9B26D]" style={{ width: `${progress}%` }}></div>
                 </div>
               </div>
-              <ArrowRight size={16} className="text-[#C1C1C1]" />
+              
+              {/* Delete Button */}
+              <button 
+                onClick={(e) => handleDelete(e, goal.id)}
+                className="p-2 text-[#C1C1C1] hover:text-red-400 transition-colors z-10"
+              >
+                <Trash2 size={18} />
+              </button>
             </div>
           );
         })}
