@@ -1,23 +1,24 @@
 import { GoogleGenAI } from "@google/genai";
 import { Memory } from "../types";
 
-/** 👍 永遠從 Vercel 環境變數取得 API Key（最安全、最不會壞） */
+/** 取得 API Key：localStorage（使用者輸入）優先，再使用 Vercel Key */
 function getApiKey() {
-  return import.meta.env.VITE_GEMINI_API_KEY || "";
+  const userKey = localStorage.getItem("user_gemini_key");
+  return userKey || import.meta.env.VITE_GEMINI_API_KEY || "";
 }
 
-/** 建立 AI 客戶端（動態建立可避免白屏） */
+/** 建立 AI 客戶端（避免空 Key 導致白屏） */
 function createAI() {
   const apiKey = getApiKey();
 
   if (!apiKey || apiKey.length < 20) {
-    throw new Error("Gemini API Key 未設定，請檢查 Vercel Environment Variables");
+    throw new Error("Gemini API Key 未設定，請確認環境變數或手動輸入");
   }
 
   return new GoogleGenAI({ apiKey });
 }
 
-/** 共用 AI 呼叫函式 */
+/** 共用呼叫函式（集中錯誤處理） */
 async function callAI(prompt: string): Promise<string> {
   try {
     const ai = createAI();
@@ -34,9 +35,9 @@ async function callAI(prompt: string): Promise<string> {
   }
 }
 
-/* -------------------------------------------
- * 1️⃣ 回憶摘要
- * -----------------------------------------*/
+/*------------------------------------------
+ 1️⃣ 回憶摘要
+-------------------------------------------*/
 export async function generateMemorySummary(memory: Memory): Promise<string> {
   const prompt = `
     我們是一對情侶。請為這段回憶寫一段溫暖、感性的摘要（繁體中文，50 字內）：
@@ -49,9 +50,9 @@ export async function generateMemorySummary(memory: Memory): Promise<string> {
   return await callAI(prompt);
 }
 
-/* -------------------------------------------
- * 2️⃣ 情侶故事
- * -----------------------------------------*/
+/*------------------------------------------
+ 2️⃣ 情侶微小說
+-------------------------------------------*/
 export async function generateCoupleStory(names: string, days: number): Promise<string> {
   const prompt = `
     請寫一篇關於 ${names} 的浪漫微小說。
@@ -62,9 +63,9 @@ export async function generateCoupleStory(names: string, days: number): Promise<
   return await callAI(prompt);
 }
 
-/* -------------------------------------------
- * 3️⃣ 每日一句
- * -----------------------------------------*/
+/*------------------------------------------
+ 3️⃣ 每日一句
+-------------------------------------------*/
 export async function generateDailyMessage(names: string, days: number): Promise<string> {
   const today = new Date();
 
@@ -77,9 +78,9 @@ export async function generateDailyMessage(names: string, days: number): Promise
   return await callAI(prompt);
 }
 
-/* -------------------------------------------
- * 4️⃣ 月回顧（四段式）
- * -----------------------------------------*/
+/*------------------------------------------
+ 4️⃣ 月回顧（四段式）
+-------------------------------------------*/
 export async function generateMonthlyStory(
   names: string,
   monthStr: string,
@@ -104,9 +105,9 @@ export async function generateMonthlyStory(
   return await callAI(prompt);
 }
 
-/* -------------------------------------------
- * 5️⃣ 年回顧（四段式）
- * -----------------------------------------*/
+/*------------------------------------------
+ 5️⃣ 年回顧（四段式）
+-------------------------------------------*/
 export async function generateYearlyStory(
   names: string,
   year: string,
@@ -128,6 +129,20 @@ export async function generateYearlyStory(
     🏆 年度最佳時刻：
     🌱 我們可以更好：
     ✨ 明年的願望清單：
+  `;
+  return await callAI(prompt);
+}
+
+/*------------------------------------------
+ 6️⃣ 恭喜卡片
+-------------------------------------------*/
+export async function generateGoalCompletionCard(
+  goalTitle: string,
+  names: string
+): Promise<string> {
+  const prompt = `
+    情侶 ${names} 完成了共同目標：「${goalTitle}」。
+    請寫 50–80 字的祝賀詞，語氣甜蜜、鼓勵、溫暖。
   `;
   return await callAI(prompt);
 }

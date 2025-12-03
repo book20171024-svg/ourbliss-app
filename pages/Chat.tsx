@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useCouple } from '../context/CoupleContext';
 import { db, storage } from '../services/firebaseConfig';
@@ -5,12 +6,12 @@ import { collection, addDoc, query, orderBy, onSnapshot, limit } from 'firebase/
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Send, Image as ImageIcon, Loader2, ArrowLeft } from 'lucide-react';
 import { ChatMessage } from '../types';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { compressImage } from '../services/imageUtils'; // Import compression
 
 const Chat: React.FC = () => {
   const { coupleId, currentUserRole, coupleData } = useCouple();
-  const navigate = useNavigate();
+  const history = useHistory();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -101,7 +102,7 @@ const Chat: React.FC = () => {
     <div className="flex flex-col h-full bg-[#F7F3ED] w-full relative">
       {/* Header - Fixed - Soft Gold Theme */}
       <header className="bg-white/90 backdrop-blur-md px-4 py-3 flex items-center gap-3 shadow-sm border-b border-[#EAEAEA] flex-shrink-0 z-20">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full text-[#8A8A8A] hover:bg-[#F7F3ED]">
+        <button onClick={() => history.goBack()} className="p-2 -ml-2 rounded-full text-[#8A8A8A] hover:bg-[#F7F3ED]">
            <ArrowLeft size={22} />
         </button>
         
@@ -162,60 +163,4 @@ const Chat: React.FC = () => {
         })}
         {isUploading && (
           <div className="flex justify-end animate-pulse">
-            <div className="bg-[#D9B26D]/50 text-white px-4 py-2 rounded-2xl text-xs flex items-center gap-2">
-               <Loader2 size={12} className="animate-spin" /> 圖片傳送中...
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Area - Fixed Bottom - White Background - Safe Area Aware */}
-      {/* Removed 'pb-4' to prevent conflict with safe-area-bottom which now has !important */}
-      <div className="bg-white p-2 border-t border-[#EAEAEA] flex-shrink-0 safe-area-bottom">
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          className="hidden" 
-          accept="image/*" 
-          onChange={handleFileChange}
-        />
-        
-        <form onSubmit={handleSend} className="flex items-end gap-2">
-          <button 
-            type="button" 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="p-3 text-[#D9B26D] bg-[#F7F3ED] hover:bg-[#EAEAEA] rounded-full transition-colors active:scale-95"
-          >
-            <ImageIcon size={20} />
-          </button>
-          
-          <div className="flex-1 bg-[#F7F3ED] rounded-2xl px-4 py-2 min-h-[44px] flex items-center mb-0.5">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="輸入訊息..."
-              className="w-full bg-transparent text-[#3A3A3A] text-sm outline-none placeholder-[#C1C1C1]"
-            />
-          </div>
-          
-          <button 
-            type="submit" 
-            disabled={!newMessage.trim() && !isUploading}
-            className={`p-3 rounded-full transition-all shadow-md active:scale-95 ${
-              newMessage.trim() 
-                ? 'bg-[#D9B26D] text-white' 
-                : 'bg-[#EAEAEA] text-white'
-            }`}
-          >
-            <Send size={18} className={newMessage.trim() ? 'ml-0.5' : ''} />
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-export default Chat;
+            <div className="bg-[#D9B26D

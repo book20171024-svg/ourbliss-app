@@ -27,7 +27,7 @@ const Pairing: React.FC = () => {
 
   if (mode === 'welcome') {
     return (
-      <div className="min-h-screen bg-[#F7F3ED] flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+      <div className="min-h-screen bg-[#F7F3ED] flex flex-col items-center justify-center p-8 text-center animate-fade-in pt-safe-top">
         <div className="mb-8 relative">
            <div className="absolute inset-0 bg-[#D9B26D] blur-3xl opacity-20 rounded-full"></div>
            <Heart size={80} className="text-[#D9B26D] relative z-10 animate-pulse" fill="#D9B26D" />
@@ -56,7 +56,7 @@ const Pairing: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F3ED] flex flex-col p-6 animate-slide-up">
+    <div className="min-h-screen bg-[#F7F3ED] flex flex-col p-6 animate-slide-up pt-safe-top">
       <button onClick={() => setMode('welcome')} className="text-[#C1C1C1] mb-8 text-left self-start">
         ← 返回
       </button>
