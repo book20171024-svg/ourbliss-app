@@ -21,7 +21,6 @@ const getEnv = (key: string) => {
 };
 
 // Use Environment Variables (Vercel)
-// If running locally without .env, these might be undefined, so ensure you have .env.local or Vercel Env set.
 export const firebaseConfig = {
   apiKey: getEnv("VITE_FIREBASE_API_KEY"),
   authDomain: getEnv("VITE_FIREBASE_AUTH_DOMAIN"),
@@ -31,9 +30,13 @@ export const firebaseConfig = {
   appId: getEnv("VITE_FIREBASE_APP_ID")
 };
 
-// Error check to help debugging
+// CRITICAL: Check if apiKey is missing to prevent "auth/invalid-api-key" crash
 if (!firebaseConfig.apiKey) {
   console.warn("⚠️ Firebase Config is missing! Please check your Vercel Environment Variables.");
+  // Assign dummy values to prevent immediate crash during initialization
+  // This allows the app to load and show UI, even if DB won't work
+  firebaseConfig.apiKey = "AIzaSy_DUMMY_KEY_TO_PREVENT_CRASH";
+  firebaseConfig.authDomain = "dummy-project.firebaseapp.com";
 }
 
 // ---- Initialize Firebase ----
